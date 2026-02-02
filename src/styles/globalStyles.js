@@ -1,33 +1,52 @@
 export const colors = {
-  background: "#1A3A2A",
-  card: "#1A3A2A60",
-  statusBar: "#12271D",
+  // Main background - dark green
+  background: "#1C3A2D",
+  statusBar: "#1C3A2D",
 
-  // Typography (match screenshot)
-  textPrimary: "#F3FFF8",
+  // Card backgrounds
+  card: "#FFFFFF1A", // Darker green for inactive player cards
+  cardActive: "#0099664D", // Lighter green for active player cards
+  cardLight: "rgba(45, 92, 62, 0.5)", // Semi-transparent for sections
+
+  // Typography
+  textPrimary: "#FFFFFF",
   textSecondary: "#B9D1C6",
   textMuted: "#8AA89A",
+  textHint: "#6B8A7A",
 
-  // Surfaces / borders on dark background
+  // Surfaces / borders
   surface: "rgba(255,255,255,0.08)",
   surfaceStrong: "rgba(255,255,255,0.12)",
   borderSoft: "rgba(255,255,255,0.14)",
   divider: "rgba(255,255,255,0.10)",
 
-  // Accents
-  success: "#34C759",
-  successSoft: "rgba(52,199,89,0.22)",
-  danger: "#FF5A52",
-  dangerSoft: "rgba(255,90,82,0.18)",
-  warning: "#FFCC00",
-  warningSoft: "rgba(255,204,0,0.22)",
+  // Accents - green for success/active
+  success: "#009966",
+  successDark: "#007A4D",
+  successSoft: "rgba(0, 153, 102, 0.2)",
 
-  // Backward-compat keys (kept so older styles don't crash)
-  text: "#333333",
-  mutedText: "#666666",
-  primary: "#007AFF",
-  infoSoft: "rgba(0,122,255,0.18)",
-  border: "#eeeeee",
+  // Red for bust/danger
+  danger: "#DC3545",
+  dangerSoft: "rgba(220, 53, 69, 0.2)",
+
+  // Yellow/gold for trophy
+  warning: "#FFD700",
+  warningSoft: "rgba(255, 215, 0, 0.2)",
+
+  // Keypad buttons
+  keypadBg: "#2A4A3A",
+  keypadText: "#FFFFFF",
+
+  // Score input
+  scoreInputBg: "#2D5C3E",
+  scoreInputError: "#DC3545",
+
+  // Backward-compat keys
+  text: "#FFFFFF",
+  mutedText: "#8AA89A",
+  primary: "#009966",
+  infoSoft: "rgba(0, 153, 102, 0.18)",
+  border: "rgba(255,255,255,0.14)",
 };
 
 export const spacing = {
