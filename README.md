@@ -1,93 +1,164 @@
-# Oche App
+# The Oche – Darts Scoring App
 
+Mobile darts scoring app for quick 301/501 games on a single device. This MVP focuses on pub-friendly scoring, offline-first behaviour, and a clean, readable UI.
 
+### Features
 
-## Getting started
+- **Game modes**: 301 or 501
+- **Players**: 2–4 players per game (name only)
+- **Rules**:
+  - Optional **Double-Out** toggle
+  - Bust logic (over-scoring, leaving 1 with double-out, invalid finishes)
+  - Exact checkout required, with optional “finished on double” confirmation
+- **Gameplay**:
+  - Simple numeric score entry (0–180)
+  - Automatic turn rotation between players
+  - **Undo last turn** (restores scores and turn order)
+  - Local game state persistence so a game survives app reloads
+- **Summary**:
+  - Clear winner display
+  - Start a brand new game
+  - Rematch with the same players and settings
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+---
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+## Project Structure
 
-## Add your files
+- **`src/App.js`**: App entry, navigation setup, and initial route resolution based on any saved game.
+- **`src/screens/`**
+  - `HomeScreen` – Start a new game.
+  - `GameSetupScreen` – Configure 301/501, double-out, legs meta, and add 2–4 players.
+  - `GameScreen` – Main scoring UI with scoreboard, score input, and undo.
+  - `GameSummaryScreen` – Winner + final scores, with options for new game or rematch.
+- **`src/components/`**
+  - `PlayerList` – Simple scrollable list of players.
+  - `ScoreInput` – Numeric score input + “finished on double” toggle.
+  - `TurnIndicator` – Shows current player and remaining score.
+  - `UndoButton` – Reverts the last turn.
+- **`src/logic/`**
+  - `gameEngine.js` – Pure game rules: validation, scoring, bust logic, finish logic, turn rotation, and undo.
+- **`src/storage/`**
+  - `localGameStore.js` – AsyncStorage wrapper for persisting the current game state offline.
+- **`src/types/`**
+  - `Player.js` – Player model / helpers.
+  - `Game.js` – Game model / helpers (designed for future team and competition support).
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/topics/git/add_files/#add-files-to-a-git-repository) or push an existing Git repository with the following command:
+The code is kept deliberately small and readable, with clear separation between UI, game logic, and persistence.
 
+---
+
+## Requirements
+
+- Node.js **20+**
+- React Native CLI environment for iOS/Android:
+  - Xcode + iOS Simulator for iOS builds (macOS)
+  - Android Studio + Android SDK + an emulator or device for Android
+
+All dependencies are declared in `package.json`.
+
+---
+
+## Setup & Installation
+
+From the project root:
+
+```bash
+npm install
 ```
-cd existing_repo
-git remote add origin https://gitlab.senew-tech.com/office/oche-app.git
-git branch -M main
-git push -uf origin main
+
+If you haven’t already set up React Native’s native tooling on this machine, follow the **React Native CLI** setup guide for your platform before continuing.
+
+---
+
+## Running the App Locally
+
+### Start the Metro bundler
+
+In one terminal:
+
+```bash
+npm start
 ```
 
-## Integrate with your tools
+### Run on Android
 
-- [ ] [Set up project integrations](https://gitlab.senew-tech.com/office/oche-app/-/settings/integrations)
+With an Android emulator running or a device connected:
 
-## Collaborate with your team
+```bash
+npm run android
+```
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Set auto-merge](https://docs.gitlab.com/user/project/merge_requests/auto_merge/)
+### Run on iOS (macOS only)
 
-## Test and Deploy
+With an iOS simulator available:
 
-Use the built-in continuous integration in GitLab.
+```bash
+npm run ios
+```
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing (SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+This uses the standard React Native CLI commands under the hood.
 
-***
+---
 
-# Editing this README
+## Building an Installable Binary
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thanks to [makeareadme.com](https://www.makeareadme.com/) for this template.
+### Android – Generate an APK (debug)
 
-## Suggestions for a good README
+For a quick, installable debug APK:
 
-Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
+```bash
+cd android
+./gradlew assembleDebug
+```
 
-## Name
-Choose a self-explaining name for your project.
+The generated APK will be at:
 
-## Description
-Let people know what your project can do specifically. Provide context and add a link to any reference visitors might be unfamiliar with. A list of Features or a Background subsection can also be added here. If there are alternatives to your project, this is a good place to list differentiating factors.
+- `android/app/build/outputs/apk/debug/app-debug.apk`
 
-## Badges
-On some READMEs, you may see small images that convey metadata, such as whether or not all the tests are passing for the project. You can use Shields to add some to your README. Many services also have instructions for adding a badge.
+You can install it on a device or emulator with:
 
-## Visuals
-Depending on what you are making, it can be a good idea to include screenshots or even a video (you'll frequently see GIFs rather than actual videos). Tools like ttygif can help, but check out Asciinema for a more sophisticated method.
+```bash
+adb install -r android/app/build/outputs/apk/debug/app-debug.apk
+```
 
-## Installation
-Within a particular ecosystem, there may be a common way of installing things, such as using Yarn, NuGet, or Homebrew. However, consider the possibility that whoever is reading your README is a novice and would like more guidance. Listing specific steps helps remove ambiguity and gets people to using your project as quickly as possible. If it only runs in a specific context like a particular programming language version or operating system or has dependencies that have to be installed manually, also add a Requirements subsection.
+For a signed release APK, follow the standard React Native guide for generating a keystore and configuring `android/app/build.gradle`.
 
-## Usage
-Use examples liberally, and show the expected output if you can. It's helpful to have inline the smallest example of usage that you can demonstrate, while providing links to more sophisticated examples if they are too long to reasonably include in the README.
+### iOS – Archive / TestFlight
 
-## Support
-Tell people where they can go to for help. It can be any combination of an issue tracker, a chat room, an email address, etc.
+For iOS, use Xcode:
 
-## Roadmap
-If you have ideas for releases in the future, it is a good idea to list them in the README.
+1. Open the workspace:
+   - `ios/LLHAR.xcworkspace`
+2. Choose a device (physical or generic iOS Device).
+3. Use `Product > Archive` to create an archive.
+4. Distribute via TestFlight or Ad Hoc as needed.
 
-## Contributing
-State if you are open to contributions and what your requirements are for accepting them.
+These steps follow the usual React Native + Xcode release pipeline.
 
-For people who want to make changes to your project, it's helpful to have some documentation on how to get started. Perhaps there is a script that they should run or some environment variables that they need to set. Make these steps explicit. These instructions could also be useful to your future self.
+---
 
-You can also document commands to lint the code or run tests. These steps help to ensure high code quality and reduce the likelihood that the changes inadvertently break something. Having instructions for running tests is especially helpful if it requires external setup, such as starting a Selenium server for testing in a browser.
+## Gameplay Notes
 
-## Authors and acknowledgment
-Show your appreciation to those who have contributed to the project.
+- Scores must be between **0 and 180** per turn.
+- A **bust** occurs when:
+  - The entered score exceeds the remaining score, or
+  - The remaining score would become **1** when **Double-Out** is enabled, or
+  - The player tries to finish on 0 with Double-Out enabled but does **not** confirm a double checkout.
+- The app asks you (via a toggle) to confirm if the winning checkout was on a double whenever Double-Out is turned on and a score would reduce the player to exactly 0.
+- Undo fully restores:
+  - The previous remaining score for the affected player.
+  - The correct current player in the turn order.
+  - Game status and winner (if you undo a winning turn).
 
-## License
-For open source projects, say how it is licensed.
+All game state is stored locally on the device; there is no backend, login, or network dependency.
 
-## Project status
-If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+---
+
+## Future-Proofing
+
+The data models are structured to support:
+
+- **Team mode**: Teams with multiple players and future team-based turn rotation.
+- **Competitions / knockouts**: Games can be associated with higher-level competition or match IDs later without breaking the current MVP.
+
+No team or tournament UI is implemented in this version.
