@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
+  Platform,
 } from "react-native";
 import { colors } from "../styles/globalStyles";
 import {
@@ -612,7 +613,9 @@ const styles = StyleSheet.create({
     left: 0,
     right: 0,
     backgroundColor: colors.background,
-    padding: 16,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: Platform.OS === "ios" ? 34 : 18,
     borderTopWidth: 1,
     borderTopColor: colors.borderSoft,
   },

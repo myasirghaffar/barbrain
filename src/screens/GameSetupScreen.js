@@ -8,6 +8,7 @@ import {
   Switch,
   Alert,
   ScrollView,
+  Platform,
 } from "react-native";
 import { colors } from "../styles/globalStyles";
 import { createPlayer } from "../types/Player";
@@ -148,8 +149,23 @@ function GameSetupScreen({ navigation, route }) {
           <Switch
             value={doubleOut}
             onValueChange={setDoubleOut}
-            trackColor={{ false: colors.card, true: "#009966" }}
-            thumbColor={doubleOut ? colors.textPrimary : colors.textMuted}
+            trackColor={{
+              false: Platform.OS === "ios" ? colors.keypadBg : colors.card,
+              true: "#009966",
+            }}
+            thumbColor={
+              Platform.OS === "ios"
+                ? "#FFFFFF"
+                : doubleOut
+                  ? colors.textPrimary
+                  : colors.textMuted
+            }
+            ios_backgroundColor={colors.keypadBg}
+            style={
+              Platform.OS === "ios"
+                ? { transform: [{ scaleX: 1.0 }, { scaleY: 1.0 }] }
+                : {}
+            }
           />
         </View>
       </View>
@@ -238,13 +254,14 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 16,
-    paddingBottom: 20,
+    paddingTop: 3,
+    paddingBottom: Platform.OS === "ios" ? 100 : 46,
   },
   section: {
-    marginBottom: 16,
+    marginBottom: 10,
   },
   playersSection: {
-    marginBottom: 16,
+    marginBottom: 6,
     padding: 16,
     borderRadius: 12,
     backgroundColor: colors.card,
@@ -269,7 +286,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
     fontWeight: "bold",
     color: colors.textPrimary,
-    marginBottom: 12,
+    marginBottom: 10,
   },
   chipRow: {
     flexDirection: "row",
@@ -302,7 +319,7 @@ const styles = StyleSheet.create({
     fontSize: 18,
   },
   playerDisplayRow: {
-    marginBottom: 12,
+    marginBottom: 6,
   },
   playerDisplay: {
     flexDirection: "row",
