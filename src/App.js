@@ -5,6 +5,7 @@ import {
   StatusBar,
   Text,
   StyleSheet,
+  Image,
 } from "react-native";
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
@@ -46,7 +47,13 @@ function App() {
         } else {
           setInitialRoute("Home");
         }
-      } finally {
+
+        // Artificial delay for splash screen visibility (1.5s)
+        setTimeout(() => {
+          setLoading(false);
+        }, 1500);
+      } catch (error) {
+        console.error("Bootstrap error:", error);
         setLoading(false);
       }
     };
@@ -59,12 +66,15 @@ function App() {
       <>
         <StatusBar
           barStyle="light-content"
-          backgroundColor={colors.statusBar}
+          backgroundColor={colors.background}
           translucent={false}
         />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color={colors.primary} />
-          <Text style={styles.loadingText}>Loading The Oche...</Text>
+          <Image
+            source={require("./assets/images/splash_logo.png")}
+            style={{ width: 160, height: 160 }}
+            resizeMode="contain"
+          />
         </View>
       </>
     );
@@ -135,18 +145,10 @@ function App() {
             <Stack.Screen
               name="GameSummary"
               component={GameSummaryScreen}
-              options={({ navigation }) => ({
-                header: () => (
-                  <Header
-                    onBack={() => navigation.goBack()}
-                    center={
-                      <Text style={styles.headerTitle}>Game Summary</Text>
-                    }
-                    showBack={true}
-                  />
-                ),
+              options={{
+                headerShown: false,
                 gestureEnabled: false,
-              })}
+              }}
             />
           </Stack.Navigator>
         </NavigationContainer>
@@ -164,9 +166,13 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background,
   },
   loadingText: {
-    marginTop: 12,
-    fontSize: 16,
-    color: colors.textSecondary,
+    marginTop: 20,
+    fontSize: 24,
+    fontWeight: "600",
+    color: colors.textPrimary,
+    letterSpacing: 2,
+    fontFamily: "Roboto",
+    textTransform: "lowercase",
   },
   headerTitle: {
     fontSize: 24,

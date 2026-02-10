@@ -8,6 +8,7 @@ import {
   Modal,
   Pressable,
 } from "react-native";
+import Svg, { Path } from "react-native-svg";
 import { colors } from "../styles/globalStyles";
 import { loadGame, saveGame } from "../storage/localGameStore";
 import { applyTurn, undoLastTurn } from "../logic/gameEngine";
@@ -69,7 +70,30 @@ function GameScreen({ navigation }) {
             game.history.length === 0 && styles.undoButtonDisabled,
           ]}
         >
-          <Text style={styles.undoIconHeader}>↩</Text>
+          <View style={styles.undoIconWrapper}>
+            <Svg
+              width="16"
+              height="16"
+              viewBox="0 0 16 16"
+              fill="none"
+              xmlns="http://www.w3.org/2000/svg"
+            >
+              <Path
+                d="M5.99741 9.32927L2.66553 5.99738L5.99741 2.6655"
+                stroke="white"
+                strokeWidth="1.33275"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+              <Path
+                d="M2.66553 5.99741H9.66249C10.1438 5.99741 10.6204 6.09221 11.0651 6.27639C11.5097 6.46058 11.9138 6.73055 12.2541 7.07088C12.5944 7.41121 12.8644 7.81525 13.0486 8.25992C13.2328 8.70458 13.3276 9.18118 13.3276 9.66248C13.3276 10.1438 13.2328 10.6204 13.0486 11.065C12.8644 11.5097 12.5944 11.9137 12.2541 12.2541C11.9138 12.5944 11.5097 12.8644 11.0651 13.0486C10.6204 13.2328 10.1438 13.3276 9.66249 13.3276H7.33017"
+                stroke="white"
+                strokeWidth="1.33275"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+            </Svg>
+          </View>
           <Text style={styles.undoTextHeader}>Undo</Text>
         </TouchableOpacity>
       );
@@ -287,9 +311,9 @@ function GameScreen({ navigation }) {
             style={[
               styles.scoreDisplay,
               scoreInput !== "" &&
-                !showScoreError &&
-                !bustMessage &&
-                styles.scoreDisplayActive,
+              !showScoreError &&
+              !bustMessage &&
+              styles.scoreDisplayActive,
               (showScoreError || bustMessage) && styles.scoreDisplayError,
             ]}
           >
@@ -310,8 +334,8 @@ function GameScreen({ navigation }) {
           {game.doubleOut &&
             parseInt(scoreValue, 10) > 0 &&
             game.players[game.currentPlayerIndex]?.remainingScore -
-              parseInt(scoreValue, 10) ===
-              0 && (
+            parseInt(scoreValue, 10) ===
+            0 && (
               <TouchableOpacity
                 style={[
                   styles.doubleToggle,
@@ -393,7 +417,7 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
   playersContainer: {
-    gap: 12,
+    gap: 16,
     marginBottom: 24,
   },
   playerCard: {
@@ -404,10 +428,14 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   playerCardActive: {
-    // backgroundColor: "#007E5B",
-    backgroundColor: colors.cardActive,
-    borderWidth: 1,
+    backgroundColor: "#2D5C3E", // Solid color to prevent shadow bleeding through
+    borderWidth: 1.5,
     borderColor: "#00BC7D",
+    shadowColor: "#009966",
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 10,
+    elevation: 8,
   },
   playerCardContent: {
     flexDirection: "row",
@@ -465,7 +493,7 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
   scoreSection: {
-    marginBottom: 24,
+    marginBottom: 12,
   },
   scoreLabel: {
     fontSize: 16,
@@ -570,11 +598,10 @@ const styles = StyleSheet.create({
     fontWeight: "bold",
   },
   keypadContainer: {
-    marginTop: 8,
-    paddingHorizontal: 32,
     alignSelf: "center",
     width: "100%",
-    maxWidth: 320,
+    maxWidth: 410,
+    alignItems: "center",
   },
   hintText: {
     textAlign: "center",
@@ -593,27 +620,33 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   undoButtonHeader: {
+    width: 87.33,
+    height: 31.99,
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    justifyContent: "center",
     borderRadius: 8,
-    backgroundColor: "transparent",
-    borderWidth: 1,
-    borderColor: "rgba(255,255,255,0.2)",
-    gap: 6,
+    backgroundColor: "rgba(255, 255, 255, 0.10)",
+    borderWidth: 1.3,
+    borderColor: "rgba(255, 255, 255, 0.20)",
+    gap: 8,
   },
   undoButtonDisabled: {
     opacity: 0.4,
   },
-  undoIconHeader: {
-    fontSize: 18,
-    color: colors.textMuted,
+  undoIconWrapper: {
+    width: 16,
+    height: 16,
+    alignItems: "center",
+    justifyContent: "center",
   },
   undoTextHeader: {
     fontSize: 14,
-    color: colors.textMuted,
-    fontWeight: "500",
+    color: "white",
+    fontWeight: "400",
+    lineHeight: 20,
+    fontFamily: "Roboto",
+    textAlign: "center",
   },
 });
 

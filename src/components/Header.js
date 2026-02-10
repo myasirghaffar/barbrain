@@ -1,5 +1,5 @@
 import React from "react";
-import { View, Text, StyleSheet, TouchableOpacity } from "react-native";
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from "react-native";
 import { colors } from "../styles/globalStyles";
 import { BackArrowIcon } from "../assets/icons/icons";
 
@@ -38,8 +38,8 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingHorizontal: 16,
     paddingBottom: 12,
-    paddingTop: 24,
-    backgroundColor: colors.statusBar,
+    paddingTop: Platform.OS === "ios" ? 54 : 36,
+    backgroundColor: colors.background,
   },
   backButton: {
     width: 40,
