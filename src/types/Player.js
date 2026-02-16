@@ -12,6 +12,7 @@
  *
  * @property {number} startingScore - Game starting score (301 or 501).
  * @property {number} remainingScore - Current remaining score.
+ * @property {number} legsWon - Number of legs won in the current match.
  *
  * // Future-proofing for team mode (not implemented in UI):
  * @property {string | null} [teamId] - Optional team identifier.
@@ -22,6 +23,7 @@ export const createPlayer = (id, name, startingScore) => ({
   name,
   startingScore,
   remainingScore: startingScore,
+  legsWon: 0,
   teamId: null,
 });
 

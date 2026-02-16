@@ -55,6 +55,7 @@ function GameSummaryScreen({ navigation }) {
       ...p,
       startingScore,
       remainingScore: startingScore,
+      legsWon: 0,
     }));
 
     const rematchGame = {
@@ -74,6 +75,11 @@ function GameSummaryScreen({ navigation }) {
     });
   };
 
+  const scoreSummary =
+    game.legsMode === "bestOf"
+      ? game.players.map((p) => p.legsWon).join(" - ")
+      : null;
+
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Trophy Section */}
@@ -88,13 +94,18 @@ function GameSummaryScreen({ navigation }) {
       {/* Winner Announcement */}
       <View style={styles.winnerContainer}>
         <Text style={styles.winnerName}>{winner?.name ?? "Unknown"}</Text>
-        <Text style={styles.winnerSubtext}>wins the game!</Text>
+        <Text style={styles.winnerSubtext}>wins the match!</Text>
+        {scoreSummary && (
+          <Text style={styles.scoreSummaryText}>Final Score: {scoreSummary}</Text>
+        )}
       </View>
 
       {/* Game Type Card */}
       <View style={styles.gameTypeCard}>
         <Text style={styles.gameTypeLabel}>Game Type</Text>
-        <Text style={styles.gameTypeValue}>{game.gameType}</Text>
+        <Text style={styles.gameTypeValue}>
+          {game.gameType} {game.legsMode === "bestOf" ? `(Best of ${game.legsCount})` : "(Single Leg)"}
+        </Text>
       </View>
 
       {/* Action Buttons */}
@@ -166,9 +177,15 @@ const styles = StyleSheet.create({
     fontSize: 24,
     color: colors.textSecondary,
   },
+  scoreSummaryText: {
+    fontSize: 20,
+    fontWeight: "600",
+    color: colors.success,
+    marginTop: 12,
+  },
   gameTypeCard: {
-    width: 122.66,
-    height: 82.58,
+    paddingHorizontal: 24,
+    paddingVertical: 16,
     backgroundColor: "rgba(255, 255, 255, 0.10)",
     borderRadius: 14,
     borderWidth: 1.3,

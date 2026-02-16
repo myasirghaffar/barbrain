@@ -110,9 +110,9 @@ export const applyTurn = (game, { score, finishedOnDouble }) => {
   const players = game.players.map((p, index) =>
     index === currentIndex
       ? {
-          ...clonePlayer(p),
-          remainingScore: wasBust ? previousRemaining : newRemaining,
-        }
+        ...clonePlayer(p),
+        remainingScore: wasBust ? previousRemaining : newRemaining,
+      }
       : clonePlayer(p)
   );
 
@@ -128,22 +128,44 @@ export const applyTurn = (game, { score, finishedOnDouble }) => {
     createdAt: Date.now(),
   };
 
+  let updatedPlayers = players;
   let status = game.status;
   let winnerPlayerId = game.winnerPlayerId;
+  let matchFinished = false;
 
   if (finished) {
-    status = "finished";
-    winnerPlayerId = currentPlayer.id;
+    // Increment legs won for the winner of this leg
+    const playersWithLegIncrement = players.map((p, index) =>
+      index === currentIndex ? { ...p, legsWon: (p.legsWon || 0) + 1 } : p
+    );
+
+    const legsToWin =
+      game.legsMode === "bestOf" ? Math.ceil(game.legsCount / 2) : 1;
+    const currentLegsWon = playersWithLegIncrement[currentIndex].legsWon;
+
+    if (currentLegsWon >= legsToWin) {
+      // Match won!
+      status = "finished";
+      winnerPlayerId = currentPlayer.id;
+      updatedPlayers = playersWithLegIncrement;
+      matchFinished = true;
+    } else {
+      // Match continues - reset scores for next leg
+      updatedPlayers = playersWithLegIncrement.map((p) => ({
+        ...p,
+        remainingScore: p.startingScore,
+      }));
+      status = "inProgress";
+      matchFinished = false;
+    }
   }
 
   // Advance to next player (always, even after bust or finish).
-  // If finished, we still advance for consistency, but UI will
-  // typically navigate away.
-  const nextPlayerIndex = (currentIndex + 1) % players.length;
+  const nextPlayerIndex = (currentIndex + 1) % updatedPlayers.length;
 
   const nextGame = {
     ...game,
-    players,
+    players: updatedPlayers,
     currentPlayerIndex: nextPlayerIndex,
     status,
     winnerPlayerId,
@@ -153,7 +175,7 @@ export const applyTurn = (game, { score, finishedOnDouble }) => {
   return {
     game: nextGame,
     bust: wasBust,
-    finished,
+    finished: matchFinished,
   };
 };
 
@@ -182,9 +204,9 @@ export const undoLastTurn = (game) => {
   const players = (game.players || []).map((p) =>
     p.id === lastTurn.playerId
       ? {
-          ...clonePlayer(p),
-          remainingScore: lastTurn.previousRemaining,
-        }
+        ...clonePlayer(p),
+        remainingScore: lastTurn.previousRemaining,
+      }
       : clonePlayer(p)
   );
 
