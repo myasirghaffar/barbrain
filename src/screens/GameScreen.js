@@ -103,7 +103,7 @@ function GameScreen({ navigation }) {
           <Header
             onBack={() => {
               // Navigate back to GameSetup since Game uses replace()
-              navigation.navigate("GameSetup");
+              navigation.navigate("GameSetup", { selectedPlayers: game.players });
             }}
             center={centerContent}
             right={rightContent}
@@ -285,9 +285,21 @@ function GameScreen({ navigation }) {
                       >
                         {player.name}
                       </Text>
-                      {isCurrent && (
-                        <Text style={styles.yourTurn}>Your Turn</Text>
-                      )}
+                      <View style={styles.playerSubInfo}>
+                        {isCurrent && (
+                          <Text style={styles.yourTurn}>Your Turn</Text>
+                        )}
+                        {game.legsMode === "bestOf" && (
+                          <Text
+                            style={[
+                              styles.legsWonText,
+                              !isCurrent && styles.legsWonTextInactive,
+                            ]}
+                          >
+                            Legs: {player.legsWon || 0}
+                          </Text>
+                        )}
+                      </View>
                     </View>
                   </View>
                   <Text
@@ -483,6 +495,19 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: "#00BC7D",
     fontWeight: "600",
+  },
+  playerSubInfo: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+  },
+  legsWonText: {
+    fontSize: 13,
+    color: colors.success,
+    fontWeight: "600",
+  },
+  legsWonTextInactive: {
+    color: colors.textMuted,
   },
   playerScore: {
     fontSize: 36,
