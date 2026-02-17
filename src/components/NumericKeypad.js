@@ -28,8 +28,8 @@ function NumericKeypad({ onNumberPress, onBackspace, onSubmit, canSubmit }) {
       <View style={styles.row}>
         <TouchableOpacity style={styles.key} onPress={onBackspace}>
           <Svg
-            width="32"
-            height="32"
+            width="24"
+            height="24"
             viewBox="0 0 24 24"
             fill="none"
             stroke={colors.textPrimary}
@@ -55,8 +55,8 @@ function NumericKeypad({ onNumberPress, onBackspace, onSubmit, canSubmit }) {
           disabled={!canSubmit}
         >
           <Svg
-            width="32"
-            height="32"
+            width="24"
+            height="24"
             viewBox="0 0 24 24"
             fill="none"
             stroke={canSubmit ? colors.textSecondary : colors.textMuted}
@@ -85,8 +85,8 @@ const styles = StyleSheet.create({
   },
   key: {
     flex: 1,
-    aspectRatio: 1.3,
-    borderRadius: 20,
+    aspectRatio: 2.6,
+    borderRadius: 10,
     backgroundColor: colors.keypadBg,
     borderWidth: 1.5,
     borderColor: "rgba(255, 255, 255, 0.12)",
@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   keyText: {
-    fontSize: 32,
+    fontSize: 24,
     color: colors.textPrimary,
     fontWeight: "600",
   },

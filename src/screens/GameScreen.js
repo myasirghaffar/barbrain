@@ -316,70 +316,71 @@ function GameScreen({ navigation }) {
           })}
         </View>
 
-        {/* Enter Score Section */}
-        <View style={styles.scoreSection}>
-          <Text style={styles.scoreLabel}>Enter Score</Text>
-          <View
+
+
+      </ScrollView>
+      {/* Enter Score Section */}
+      <View style={styles.scoreSection}>
+        <Text style={styles.scoreLabel}>Enter Score</Text>
+        <View
+          style={[
+            styles.scoreDisplay,
+            scoreInput !== "" &&
+            !showScoreError &&
+            !bustMessage &&
+            styles.scoreDisplayActive,
+            (showScoreError || bustMessage) && styles.scoreDisplayError,
+          ]}
+        >
+          <Text
             style={[
-              styles.scoreDisplay,
-              scoreInput !== "" &&
-              !showScoreError &&
-              !bustMessage &&
-              styles.scoreDisplayActive,
-              (showScoreError || bustMessage) && styles.scoreDisplayError,
+              styles.scoreDisplayText,
+              (showScoreError || bustMessage) && styles.scoreDisplayTextError,
             ]}
           >
-            <Text
-              style={[
-                styles.scoreDisplayText,
-                (showScoreError || bustMessage) && styles.scoreDisplayTextError,
-              ]}
-            >
-              {scoreValue}
-            </Text>
-          </View>
-
-          {showScoreError && (
-            <Text style={styles.scoreErrorText}>Maximum score is 180</Text>
-          )}
-
-          {game.doubleOut &&
-            parseInt(scoreValue, 10) > 0 &&
-            game.players[game.currentPlayerIndex]?.remainingScore -
-            parseInt(scoreValue, 10) ===
-            0 && (
-              <TouchableOpacity
-                style={[
-                  styles.doubleToggle,
-                  finishedOnDouble && styles.doubleToggleActive,
-                ]}
-                onPress={() => setFinishedOnDouble((prev) => !prev)}
-              >
-                <Text
-                  style={[
-                    styles.doubleToggleText,
-                    finishedOnDouble && styles.doubleToggleTextActive,
-                  ]}
-                >
-                  ✓ Finished on double
-                </Text>
-              </TouchableOpacity>
-            )}
-        </View>
-
-        {/* Numeric Keypad */}
-        <View style={styles.keypadContainer}>
-          <NumericKeypad
-            onNumberPress={handleNumberPress}
-            onBackspace={handleBackspace}
-            onSubmit={handleSubmitScore}
-            canSubmit={canSubmit}
-          />
-          <Text style={styles.hintText}>
-            Enter total score for 3 darts (0-180)
+            {scoreValue}
           </Text>
         </View>
-      </ScrollView>
+
+        {showScoreError && (
+          <Text style={styles.scoreErrorText}>Maximum score is 180</Text>
+        )}
+
+        {game.doubleOut &&
+          parseInt(scoreValue, 10) > 0 &&
+          game.players[game.currentPlayerIndex]?.remainingScore -
+          parseInt(scoreValue, 10) ===
+          0 && (
+            <TouchableOpacity
+              style={[
+                styles.doubleToggle,
+                finishedOnDouble && styles.doubleToggleActive,
+              ]}
+              onPress={() => setFinishedOnDouble((prev) => !prev)}
+            >
+              <Text
+                style={[
+                  styles.doubleToggleText,
+                  finishedOnDouble && styles.doubleToggleTextActive,
+                ]}
+              >
+                ✓ Finished on double
+              </Text>
+            </TouchableOpacity>
+          )}
+      </View>
+      {/* Numeric Keypad (Fixed at Bottom) */}
+      <View style={styles.keypadFooter}>
+        <NumericKeypad
+          onNumberPress={handleNumberPress}
+          onBackspace={handleBackspace}
+          onSubmit={handleSubmitScore}
+          canSubmit={canSubmit}
+        />
+        <Text style={styles.hintText}>
+          Enter total score for 3 darts (0-180)
+        </Text>
+      </View>
 
       {/* BUST! Popup Modal */}
       <Modal
@@ -518,15 +519,17 @@ const styles = StyleSheet.create({
     color: colors.textMuted,
   },
   scoreSection: {
-    marginBottom: 12,
+    marginBottom: 4,
+    paddingHorizontal: 16,
   },
   scoreLabel: {
     fontSize: 16,
     color: colors.textPrimary,
+    marginTop: 6,
     marginBottom: 12,
   },
   scoreDisplay: {
-    height: 100,
+    height: 70,
     borderRadius: 14,
     backgroundColor: "#3B4E48",
     borderWidth: 1,
@@ -545,7 +548,7 @@ const styles = StyleSheet.create({
     borderColor: "#B73225",
   },
   scoreDisplayText: {
-    fontSize: 56,
+    fontSize: 40,
     fontWeight: "bold",
     color: colors.textPrimary,
   },
@@ -622,11 +625,13 @@ const styles = StyleSheet.create({
     color: colors.textPrimary,
     fontWeight: "bold",
   },
-  keypadContainer: {
-    alignSelf: "center",
-    width: "100%",
-    maxWidth: 410,
+  keypadFooter: {
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 30, // Extra padding for bottom-notched devices
+    backgroundColor: colors.background,
     alignItems: "center",
+    width: "100%",
   },
   hintText: {
     textAlign: "center",
