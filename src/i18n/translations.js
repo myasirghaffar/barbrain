@@ -2,7 +2,7 @@
  * App translations. English (en) is primary; German (de) is second language.
  */
 export const en = {
-  appName: "Barbrain",
+  appName: "Barlytics",
   tabAreas: "Areas",
   tabPurchasePrices: "Purchase prices",
   tabReports: "Reports",
@@ -119,7 +119,7 @@ export const en = {
 };
 
 export const de = {
-  appName: "Barbrain",
+  appName: "Barlytics",
   tabAreas: "Bereiche",
   tabPurchasePrices: "EK-Preise",
   tabReports: "Ergebnis-Listen",

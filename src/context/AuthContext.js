@@ -12,8 +12,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as authApi from '../api/authApi';
 import { setAuthToken, clearAuthToken } from '../api/inventoryApi';
 
-const AUTH_TOKEN_KEY = '@barbrain_auth_token';
-const AUTH_USER_KEY = '@barbrain_auth_user';
+const AUTH_TOKEN_KEY = '@barlytics_auth_token';
+const AUTH_USER_KEY = '@barlytics_auth_user';
 
 const AuthContext = createContext(null);
 

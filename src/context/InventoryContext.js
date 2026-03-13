@@ -8,7 +8,7 @@ import * as DB from '../database/inventoryDB';
 import * as API from '../api/inventoryApi';
 import { useAuth } from './AuthContext';
 
-const OFFLINE_STORAGE_KEY = '@barbrain_offline_download';
+const OFFLINE_STORAGE_KEY = '@barlytics_offline_download';
 
 const dataSource = USE_BACKEND_API ? API : DB;
 

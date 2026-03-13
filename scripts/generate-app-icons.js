@@ -60,7 +60,7 @@ async function generate() {
   }
 
   // iOS
-  const iosDir = path.join(root, 'ios', 'Barbrain', 'Images.xcassets', 'AppIcon.appiconset');
+  const iosDir = path.join(root, 'ios', 'Barlytics', 'Images.xcassets', 'AppIcon.appiconset');
   if (!fs.existsSync(iosDir)) fs.mkdirSync(iosDir, { recursive: true });
   for (const [filename, size] of Object.entries(iosSizes)) {
     const buf = await makeIcon(size);
@@ -68,7 +68,7 @@ async function generate() {
     console.log('iOS:', filename, size + 'px');
   }
 
-  console.log('Done. Barbrain app icons generated from barlogo.png');
+  console.log('Done. Barlytics app icons generated from barlogo.png');
 }
 
 generate().catch((err) => {

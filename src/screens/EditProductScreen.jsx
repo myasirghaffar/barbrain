@@ -63,7 +63,7 @@ export default function EditProductScreen({ route, navigation }) {
       if (check) return true;
       const result = await PermissionsAndroid.request(perm, {
         title: 'Allow photo access',
-        message: 'Barbrain needs access to your photos to add product images.',
+        message: 'Barlytics needs access to your photos to add product images.',
         buttonNeutral: 'Ask Me Later',
         buttonNegative: 'Cancel',
         buttonPositive: 'Allow',

@@ -1,5 +1,5 @@
 /**
- * API configuration for Barbrain.
+ * API configuration for Barlytics.
  *
  * Development (emulator):
  * - Android emulator: http://10.0.2.2:8000 (localhost from host machine)

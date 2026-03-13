@@ -125,7 +125,7 @@ th{background:#f4f6f8;}
 </body></html>`;
       const result = await generatePDF({
         html,
-        fileName: `barbrain-report-${Date.now()}`,
+        fileName: `barlytics-report-${Date.now()}`,
       });
       const path = result?.filePath;
       if (path) await shareFile(Platform.OS === "ios" ? path : `file://${path}`, "application/pdf", t("exportPdf") || "Export PDF");
@@ -159,7 +159,7 @@ th{background:#f4f6f8;}
       XLSX.utils.book_append_sheet(wb, ws, t("reports") || "Report");
       const wbout = XLSX.write(wb, { type: "base64", bookType: "xlsx" });
       const dir = RNFS.CacheDirectoryPath || RNFS.DocumentDirectoryPath;
-      const filePath = `${dir}/barbrain-report-${Date.now()}.xlsx`;
+      const filePath = `${dir}/barlytics-report-${Date.now()}.xlsx`;
       await RNFS.writeFile(filePath, wbout, "base64");
       await shareFile(filePath, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", t("exportExcel") || "Export Excel");
     } catch (e) {

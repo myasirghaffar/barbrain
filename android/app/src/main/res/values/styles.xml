@@ -2,7 +2,7 @@
 
     <!-- Base application theme. -->
     <style name="AppTheme" parent="Theme.AppCompat.DayNight.NoActionBar">
-        <!-- Splash: same blue as JS splash so one continuous Barbrain splash -->
+        <!-- Splash: same blue as JS splash so one continuous Barlytics splash -->
         <item name="android:windowBackground">@color/splash_background</item>
         <item name="android:editTextBackground">@drawable/rn_edit_text_material</item>
     </style>

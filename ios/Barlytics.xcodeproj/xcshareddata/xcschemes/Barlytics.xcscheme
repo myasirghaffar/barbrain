@@ -15,9 +15,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-               BuildableName = "Barbrain.app"
-               BlueprintName = "Barbrain"
-               ReferencedContainer = "container:Barbrain.xcodeproj">
+               BuildableName = "Barlytics.app"
+               BlueprintName = "Barlytics"
+               ReferencedContainer = "container:Barlytics.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -33,9 +33,9 @@
             <BuildableReference
                BuildableIdentifier = "primary"
                BlueprintIdentifier = "00E356ED1AD99517003FC87E"
-               BuildableName = "BarbrainTests.xctest"
-               BlueprintName = "BarbrainTests"
-               ReferencedContainer = "container:Barbrain.xcodeproj">
+               BuildableName = "BarlyticsTests.xctest"
+               BlueprintName = "BarlyticsTests"
+               ReferencedContainer = "container:Barlytics.xcodeproj">
             </BuildableReference>
          </TestableReference>
       </Testables>
@@ -55,9 +55,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "Barbrain.app"
-            BlueprintName = "Barbrain"
-            ReferencedContainer = "container:Barbrain.xcodeproj">
+            BuildableName = "Barlytics.app"
+            BlueprintName = "Barlytics"
+            ReferencedContainer = "container:Barlytics.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -72,9 +72,9 @@
          <BuildableReference
             BuildableIdentifier = "primary"
             BlueprintIdentifier = "13B07F861A680F5B00A75B9A"
-            BuildableName = "Barbrain.app"
-            BlueprintName = "Barbrain"
-            ReferencedContainer = "container:Barbrain.xcodeproj">
+            BuildableName = "Barlytics.app"
+            BlueprintName = "Barlytics"
+            ReferencedContainer = "container:Barlytics.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>

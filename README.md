@@ -1,4 +1,4 @@
-# Barbrain – Bar Inventory Management App
+# Barlytics – Bar Inventory Management App
 
 Mobile bar inventory app for quick stock counting, product management, and reports. Offline-first with SQLite, clean UI, and support for multiple areas (stations).
 
@@ -55,23 +55,23 @@ Metro: `npm start` (in a separate terminal if needed).
 ## Building
 
 - **Android:** `cd android && ./gradlew assembleDebug` → `app/build/outputs/apk/debug/app-debug.apk`
-- **iOS:** Open `ios/Barbrain.xcworkspace` in Xcode → Product → Archive for release/TestFlight.
+- **iOS:** Open `ios/Barlytics.xcworkspace` in Xcode → Product → Archive for release/TestFlight.
 
 ---
 
 ## Renaming the project folder (optional)
 
-The app and npm package are already named **Barbrain**. If your project folder is still `oche-app` and you want the IDE (e.g. Cursor) to show **Barbrain** or **barbrain-app**:
+The app and npm package are already named **Barlytics**. If your project folder is still `oche-app` and you want the IDE (e.g. Cursor) to show **Barlytics** or **barlytics-app**:
 
 1. **Close** this project in Cursor/VS Code.
 2. In Terminal, from the **parent** of the project (e.g. `Documents/React-Native/`), run:
    ```bash
-   mv oche-app barbrain-app
+   mv oche-app barlytics-app
    ```
-3. **Reopen** the project by opening the folder `barbrain-app` (File → Open Folder).
+3. **Reopen** the project by opening the folder `barlytics-app` (File → Open Folder).
 4. Run `npm run android` or `npm run ios` once so generated config (e.g. autolinking) picks up the new path.
 
 ---
 
-App name and display: **Barbrain**.  
+App name and display: **Barlytics**.  
 Bundle/package identifiers (e.g. `com.oche`) are unchanged for stability.

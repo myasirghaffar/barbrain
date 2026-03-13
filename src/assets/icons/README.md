@@ -3,7 +3,7 @@
 Central icon definitions for the Bar Inventory app. Uses **MaterialIcons** from `react-native-vector-icons`. The font must be linked for icons to display (not show as □ or X).
 
 - **Android:** `android/app/build.gradle` applies `react-native-vector-icons/fonts.gradle` so `MaterialIcons.ttf` is copied at build time.
-- **iOS:** `MaterialIcons.ttf` is in `ios/Barbrain/Fonts/` and added to the Xcode project; `Info.plist` has `UIAppFonts` → `MaterialIcons.ttf`.
+- **iOS:** `MaterialIcons.ttf` is in `ios/Barlytics/Fonts/` and added to the Xcode project; `Info.plist` has `UIAppFonts` → `MaterialIcons.ttf`.
 
 ## Usage
 
