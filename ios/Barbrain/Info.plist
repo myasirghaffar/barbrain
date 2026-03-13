@@ -36,7 +36,13 @@
 	<key>NSLocationWhenInUseUsageDescription</key>
 	<string></string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>Select a product image from your photo library.</string>
+	<string>Barbrain needs access to your photo library to select product images.</string>
+	<key>NSPhotoLibraryAddUsageDescription</key>
+	<string>Barbrain needs permission to save product images to your photo library.</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Barbrain needs camera access to take product photos.</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Barbrain may use the microphone when recording video for product images.</string>
 	<key>RCTNewArchEnabled</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>

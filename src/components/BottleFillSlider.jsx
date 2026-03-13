@@ -23,14 +23,14 @@ const FILL_GRADIENT = {
   darkBlue: "#00009c",
 };
 
-const DEFAULT_BOTTLE_HEIGHT = 240;
-const BOTTLE_WIDTH = Math.min(Dimensions.get("window").width * 0.5, 180);
+const DEFAULT_BOTTLE_HEIGHT = 320;
+const BOTTLE_WIDTH = Math.min(Dimensions.get("window").width * 0.65, 240);
 const BOTTLE_VERTICAL_PADDING = 24;
 const LINE_HIT_HEIGHT = 40;
 const LINE_THICKNESS = 3;
 const HANDLE_RADIUS = 6;
-const MIN_BOTTLE_HEIGHT = 160;
-const MAX_BOTTLE_HEIGHT = 320;
+const MIN_BOTTLE_HEIGHT = 220;
+const MAX_BOTTLE_HEIGHT = 420;
 
 function BottleFillSlider({
   image,

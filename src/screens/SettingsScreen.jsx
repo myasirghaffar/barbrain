@@ -14,11 +14,14 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Icon, Icons } from '../assets/icons';
 import { useInventory } from '../context/InventoryContext';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
+import { USE_BACKEND_API } from '../config/useApi';
 import { colors, spacing } from '../theme/colors';
 
 export default function SettingsScreen({ navigation }) {
   const { offlineDownloadEnabled, setOfflineDownloadEnabled } = useInventory();
   const { t, locale, setLocale } = useLanguage();
+  const { logout } = useAuth();
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'left', 'right']}>
@@ -81,6 +84,19 @@ export default function SettingsScreen({ navigation }) {
             {t('tabReports')}, {t('tabPurchasePrices')}, {t('inventory')} — use the bottom tabs.
           </Text>
         </View>
+
+        {USE_BACKEND_API && (
+          <View style={styles.section}>
+            <Text style={styles.sectionTitle}>{t('account')}</Text>
+            <TouchableOpacity
+              style={styles.signOutRow}
+              onPress={logout}
+            >
+              <Icon name={Icons.lock} size={22} color={colors.danger} />
+              <Text style={styles.signOutLabel}>{t('signOut')}</Text>
+            </TouchableOpacity>
+          </View>
+        )}
       </ScrollView>
       </View>
     </SafeAreaView>
@@ -152,5 +168,19 @@ const styles = StyleSheet.create({
     color: colors.textSecondary,
     marginTop: spacing.xs,
     marginLeft: spacing.xs,
+  },
+  signOutRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: colors.cardBackground,
+    padding: spacing.md,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: colors.border,
+  },
+  signOutLabel: {
+    fontSize: 16,
+    color: colors.danger,
+    marginLeft: spacing.sm,
   },
 });

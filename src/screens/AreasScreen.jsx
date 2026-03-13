@@ -93,9 +93,13 @@ export default function AreasScreen({ navigation }) {
   const saveNewCategory = useCallback(async () => {
     const name = (newCategoryName || "").trim();
     if (!name) return;
-    await addArea(name);
-    setAddModalVisible(false);
-  }, [newCategoryName, addArea]);
+    try {
+      await addArea(name);
+      setAddModalVisible(false);
+    } catch (err) {
+      Alert.alert(t("addCategory") || "Add category", err?.message || "Failed to add category");
+    }
+  }, [newCategoryName, addArea, t]);
 
   const saveEditCategory = useCallback(async () => {
     const name = (categoryName || "").trim();

@@ -1,14 +1,18 @@
 /**
- * Bar Inventory app navigation: Bottom Tabs (Areas, Purchase prices, Reports)
- * with nested Stack for Areas → ProductList → AddProduct → InventoryMode.
+ * Bar Inventory app navigation: Auth stack when unauthenticated,
+ * Bottom Tabs (Areas, Purchase prices, Reports) when authenticated.
  */
 import React from 'react';
-import { Platform } from 'react-native';
+import { View, ActivityIndicator, StyleSheet, Platform } from 'react-native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Icon, Icons } from '../assets/icons';
 import { useLanguage } from '../context/LanguageContext';
+import { useAuth } from '../context/AuthContext';
+import { USE_BACKEND_API } from '../config/useApi';
+import LoginScreen from '../screens/LoginScreen';
+import SignUpScreen from '../screens/SignUpScreen';
 import AreasScreen from '../screens/AreasScreen';
 import ProductListScreen from '../screens/ProductListScreen';
 import AddProductScreen from '../screens/AddProductScreen';
@@ -117,6 +121,48 @@ function TabNavigator() {
   );
 }
 
+function AuthStack() {
+  return (
+    <Stack.Navigator
+      screenOptions={{
+        headerShown: false,
+        animation: 'slide_from_right',
+      }}
+    >
+      <Stack.Screen name="Login" component={LoginScreen} />
+      <Stack.Screen name="SignUp" component={SignUpScreen} />
+    </Stack.Navigator>
+  );
+}
+
 export default function AppNavigator() {
+  const { isAuthenticated, isLoading } = useAuth();
+
+  // When using local DB, skip auth
+  if (!USE_BACKEND_API) {
+    return <TabNavigator />;
+  }
+
+  if (isLoading) {
+    return (
+      <View style={styles.loading}>
+        <ActivityIndicator size="large" color={colors.primaryBlue} />
+      </View>
+    );
+  }
+
+  if (!isAuthenticated) {
+    return <AuthStack />;
+  }
+
   return <TabNavigator />;
 }
+
+const styles = StyleSheet.create({
+  loading: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: colors.background,
+  },
+});

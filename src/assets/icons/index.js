@@ -55,6 +55,11 @@ export const Icons = {
   cropSquare: 'crop-square',
   list: 'list',
 
+  // Auth
+  lock: 'lock',
+  person: 'person',
+  email: 'email',
+
   // Offline & misc
   offlinePin: 'offline-pin',
   playArrow: 'play-arrow',

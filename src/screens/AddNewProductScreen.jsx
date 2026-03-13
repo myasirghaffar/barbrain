@@ -2,7 +2,7 @@
  * Full form to add a new product manually (name, volume, category, purchase price, image).
  * On image pick, runs bottle detection (mock), crop-to-bounds, and resize to 249px height.
  */
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -18,6 +18,8 @@ import {
   Modal,
   FlatList,
   Pressable,
+  PermissionsAndroid,
+  Linking,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { NativeModules } from "react-native";
@@ -44,12 +46,7 @@ const toImageUri = (uri) => {
   return t;
 };
 
-/** Simple validation: background-removed images should be PNG (transparency). */
-const isLikelyBackgroundRemoved = (uri) => {
-  if (uri == null || typeof uri !== "string") return false;
-  const t = uri.trim().split("?")[0].toLowerCase();
-  return t.endsWith(".png");
-};
+/** Accept any image format – resize step will output PNG if needed. */
 
 /** Mock bottle detection – replace with ML model (e.g. TensorFlow.js, ML Kit) later. */
 const detectBottleInImage = async (_imagePath) => {
@@ -125,20 +122,19 @@ export default function AddNewProductScreen({ navigation }) {
   const selectedArea = areas.find((a) => a.id === selectedAreaId) || areas[0];
   const selectedAreaName = selectedArea?.name ?? "";
 
+  // Sync selectedAreaId when areas load (e.g. user opened screen before areas were fetched)
+  useEffect(() => {
+    if (areas.length > 0 && !selectedAreaId) {
+      setSelectedAreaId(areas[0].id);
+    }
+  }, [areas, selectedAreaId]);
+
   const processPickedImage = useCallback(
     async (uri) => {
       setImageProcessing(true);
       setImageUri(uri);
       setImageUrl("");
       try {
-        if (!isLikelyBackgroundRemoved(uri)) {
-          Alert.alert(
-            t("error") || "Error",
-            t("bgRemovalRequired") ||
-              "Please upload a PNG image with transparent background (background removed).",
-          );
-          return;
-        }
         setImageUploadStep("detecting");
         const detectionResult = await detectBottleInImage(uri);
         if (!detectionResult?.detected) {
@@ -169,7 +165,42 @@ export default function AddNewProductScreen({ navigation }) {
     [t],
   );
 
-  const handlePickImage = useCallback(() => {
+  const requestMediaPermission = useCallback(async () => {
+    if (Platform.OS !== "android") return true;
+    try {
+      const apiLevel = Platform.Version;
+      const perm =
+        apiLevel >= 33
+          ? PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES
+          : PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
+      const check = await PermissionsAndroid.check(perm);
+      if (check) return true;
+      const result = await PermissionsAndroid.request(perm, {
+        title: "Allow photo access",
+        message: "Barbrain needs access to your photos to add product images.",
+        buttonNeutral: "Ask Me Later",
+        buttonNegative: "Cancel",
+        buttonPositive: "Allow",
+      });
+      if (result === PermissionsAndroid.RESULTS.GRANTED) return true;
+      if (result === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
+        Alert.alert(
+          "Permission Required",
+          "Photo access was denied. Please enable it in Settings to add product images.",
+          [
+            { text: "Cancel", style: "cancel" },
+            { text: "Open Settings", onPress: () => Linking.openSettings() },
+          ]
+        );
+        return false;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  }, []);
+
+  const handlePickImage = useCallback(async () => {
     const launchImageLibrary = RNImagePicker?.launchImageLibrary;
     if (typeof launchImageLibrary !== "function") {
       Alert.alert(
@@ -178,6 +209,8 @@ export default function AddNewProductScreen({ navigation }) {
       );
       return;
     }
+    const hasPermission = await requestMediaPermission();
+    if (!hasPermission) return;
     launchImageLibrary(
       {
         mediaType: "photo",
@@ -192,13 +225,14 @@ export default function AddNewProductScreen({ navigation }) {
         await processPickedImage(uri);
       },
     );
-  }, [processPickedImage]);
+  }, [processPickedImage, requestMediaPermission]);
 
   const handleRemoveImage = useCallback(() => setImageUri(null), []);
 
   const validate = useCallback(() => {
     const next = {};
     if (!(name || "").trim()) next.name = t("productNameRequired");
+    if (!selectedAreaId) next.area = "Please select an area";
     const vol = parseInt(volume, 10);
     if (volume !== "" && (isNaN(vol) || vol < 0))
       next.volume = "Invalid volume";
@@ -206,7 +240,7 @@ export default function AddNewProductScreen({ navigation }) {
     if (price !== "" && (isNaN(pr) || pr < 0)) next.price = "Invalid price";
     setErrors(next);
     return Object.keys(next).length === 0;
-  }, [name, volume, price, t]);
+  }, [name, volume, price, selectedAreaId, t]);
 
   const handleSave = useCallback(async () => {
     if (!validate()) return;
@@ -402,7 +436,8 @@ export default function AddNewProductScreen({ navigation }) {
               <Text
                 style={[
                   styles.dropdownText,
-                  !selectedAreaName && styles.dropdownPlaceholder,
+                  (!selectedAreaName || errors.area) && styles.dropdownPlaceholder,
+                  errors.area && styles.inputError,
                 ]}
               >
                 {selectedAreaName || t("categoryNamePlaceholder")}
@@ -459,6 +494,9 @@ export default function AddNewProductScreen({ navigation }) {
                 </Pressable>
               </Pressable>
             </Modal>
+            {errors.area ? (
+              <Text style={styles.errorText}>{errors.area}</Text>
+            ) : null}
           </View>
 
           <View style={styles.field}>

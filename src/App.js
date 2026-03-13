@@ -8,6 +8,7 @@ import {
 import { NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { GestureHandlerRootView } from "react-native-gesture-handler";
 import { SafeAreaProvider } from "react-native-safe-area-context";
+import { AuthProvider } from "./context/AuthContext";
 import { InventoryProvider } from "./context/InventoryContext";
 import { LanguageProvider } from "./context/LanguageContext";
 import AppNavigator from "./navigation/AppNavigator";
@@ -51,11 +52,13 @@ function App() {
       <SafeAreaProvider>
         <StatusBar barStyle="dark-content" backgroundColor={colors.cardBackground} />
         <LanguageProvider>
-          <InventoryProvider>
-            <NavigationContainer theme={navTheme}>
-              <AppNavigator />
-            </NavigationContainer>
-          </InventoryProvider>
+          <AuthProvider>
+            <InventoryProvider>
+              <NavigationContainer theme={navTheme}>
+                <AppNavigator />
+              </NavigationContainer>
+            </InventoryProvider>
+          </AuthProvider>
         </LanguageProvider>
       </SafeAreaProvider>
     </GestureHandlerRootView>

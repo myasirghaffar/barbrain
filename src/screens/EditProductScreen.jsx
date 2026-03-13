@@ -15,6 +15,8 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  PermissionsAndroid,
+  Linking,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as RNImagePicker from 'react-native-image-picker';
@@ -49,7 +51,42 @@ export default function EditProductScreen({ route, navigation }) {
     }
   }, [product?.id]);
 
-  const handlePickImage = useCallback(() => {
+  const requestMediaPermission = useCallback(async () => {
+    if (Platform.OS !== 'android') return true;
+    try {
+      const apiLevel = Platform.Version;
+      const perm =
+        apiLevel >= 33
+          ? PermissionsAndroid.PERMISSIONS.READ_MEDIA_IMAGES
+          : PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE;
+      const check = await PermissionsAndroid.check(perm);
+      if (check) return true;
+      const result = await PermissionsAndroid.request(perm, {
+        title: 'Allow photo access',
+        message: 'Barbrain needs access to your photos to add product images.',
+        buttonNeutral: 'Ask Me Later',
+        buttonNegative: 'Cancel',
+        buttonPositive: 'Allow',
+      });
+      if (result === PermissionsAndroid.RESULTS.GRANTED) return true;
+      if (result === PermissionsAndroid.RESULTS.NEVER_ASK_AGAIN) {
+        Alert.alert(
+          'Permission Required',
+          'Photo access was denied. Please enable it in Settings to add product images.',
+          [
+            { text: 'Cancel', style: 'cancel' },
+            { text: 'Open Settings', onPress: () => Linking.openSettings() },
+          ]
+        );
+        return false;
+      }
+      return false;
+    } catch {
+      return false;
+    }
+  }, []);
+
+  const handlePickImage = useCallback(async () => {
     const launchImageLibrary = RNImagePicker?.launchImageLibrary;
     if (typeof launchImageLibrary !== 'function') {
       Alert.alert(
@@ -58,6 +95,8 @@ export default function EditProductScreen({ route, navigation }) {
       );
       return;
     }
+    const hasPermission = await requestMediaPermission();
+    if (!hasPermission) return;
     const promise = launchImageLibrary(
       { mediaType: 'photo', includeBase64: false },
       (res) => {
@@ -68,7 +107,7 @@ export default function EditProductScreen({ route, navigation }) {
     if (promise && typeof promise.catch === 'function') {
       promise.catch(() => {});
     }
-  }, []);
+  }, [requestMediaPermission]);
 
   const handleRemoveImage = useCallback(() => {
     setImageUri(null);

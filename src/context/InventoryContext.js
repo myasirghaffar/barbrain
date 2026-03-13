@@ -1,28 +1,34 @@
 /**
- * Global inventory state: products, areas, current station, offline preference, and DB helpers.
+ * Global inventory state: products, areas, current station, offline preference, and DB/API helpers.
  */
 import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { USE_BACKEND_API } from '../config/useApi';
 import * as DB from '../database/inventoryDB';
+import * as API from '../api/inventoryApi';
+import { useAuth } from './AuthContext';
 
 const OFFLINE_STORAGE_KEY = '@barbrain_offline_download';
+
+const dataSource = USE_BACKEND_API ? API : DB;
 
 const InventoryContext = createContext(null);
 
 export function InventoryProvider({ children }) {
+  const { isAuthenticated } = useAuth();
   const [products, setProducts] = useState([]);
   const [areas, setAreas] = useState([]);
-  const [currentAreaId, setCurrentAreaId] = useState(1);
-  const [currentAreaName, setCurrentAreaName] = useState('Cocktailstation');
+  const [currentAreaId, setCurrentAreaId] = useState(USE_BACKEND_API ? null : 1);
+  const [currentAreaName, setCurrentAreaName] = useState(USE_BACKEND_API ? '' : 'Cocktailstation');
   const [dbReady, setDbReady] = useState(false);
   const [offlineDownloadEnabled, setOfflineDownloadEnabledState] = useState(false);
 
   const loadDB = useCallback(async () => {
     try {
-      await DB.initDB();
+      await dataSource.initDB();
       setDbReady(true);
     } catch (e) {
-      console.error('DB init failed', e);
+      console.error('Data source init failed', e);
       setDbReady(false);
     }
   }, []);
@@ -48,7 +54,9 @@ export function InventoryProvider({ children }) {
 
   const refreshAreas = useCallback(async () => {
     if (!dbReady) return;
-    const list = await DB.getAreas();
+    if (USE_BACKEND_API && !isAuthenticated) return;
+    try {
+      const list = await dataSource.getAreas();
     setAreas(list);
     if (list.length && !list.find((a) => a.id === currentAreaId)) {
       setCurrentAreaId(list[0].id);
@@ -57,11 +65,14 @@ export function InventoryProvider({ children }) {
       const current = list.find((a) => a.id === currentAreaId);
       if (current) setCurrentAreaName(current.name);
     }
-  }, [dbReady, currentAreaId]);
+    } catch (e) {
+      console.warn('refreshAreas failed:', e?.message);
+    }
+  }, [dbReady, currentAreaId, isAuthenticated]);
 
   const updateArea = useCallback(
     async (id, name) => {
-      await DB.updateArea(id, name);
+      await dataSource.updateArea(id, name);
       await refreshAreas();
     },
     [refreshAreas]
@@ -69,7 +80,7 @@ export function InventoryProvider({ children }) {
 
   const deleteArea = useCallback(
     async (id) => {
-      await DB.deleteArea(id);
+      await dataSource.deleteArea(id);
       await refreshAreas();
     },
     [refreshAreas]
@@ -77,7 +88,7 @@ export function InventoryProvider({ children }) {
 
   const addArea = useCallback(
     async (name) => {
-      const id = await DB.addArea(name || '');
+      const id = await dataSource.addArea(name || '');
       await refreshAreas();
       return id;
     },
@@ -86,9 +97,15 @@ export function InventoryProvider({ children }) {
 
   const refreshProducts = useCallback(async () => {
     if (!dbReady) return;
-    const list = await DB.getProducts(currentAreaId);
-    setProducts(list);
-  }, [dbReady, currentAreaId]);
+    if (USE_BACKEND_API && currentAreaId == null) return;
+    if (USE_BACKEND_API && !isAuthenticated) return;
+    try {
+      const list = await dataSource.getProducts(currentAreaId);
+      setProducts(list);
+    } catch (e) {
+      console.warn('refreshProducts failed:', e?.message);
+    }
+  }, [dbReady, currentAreaId, isAuthenticated]);
 
   useEffect(() => {
     if (dbReady) {
@@ -105,12 +122,12 @@ export function InventoryProvider({ children }) {
   const addProduct = useCallback(
     async (product) => {
       const areaId = product.areaId ?? currentAreaId;
-      const id = await DB.addProduct({ ...product, areaId });
+      const id = await dataSource.addProduct({ ...product, areaId });
       if (areaId !== currentAreaId) {
         setCurrentAreaId(areaId);
         const area = areas.find((a) => a.id === areaId);
         if (area) setCurrentAreaName(area.name);
-        const list = await DB.getProducts(areaId);
+        const list = await dataSource.getProducts(areaId);
         setProducts(list);
       } else {
         await refreshProducts();
@@ -122,7 +139,7 @@ export function InventoryProvider({ children }) {
 
   const addProducts = useCallback(
     async (items) => {
-      await DB.addProducts(items, currentAreaId);
+      await dataSource.addProducts(items, currentAreaId);
       await refreshProducts();
     },
     [currentAreaId, refreshProducts]
@@ -130,7 +147,7 @@ export function InventoryProvider({ children }) {
 
   const updateProduct = useCallback(
     async (id, updates) => {
-      await DB.updateProduct(id, updates);
+      await dataSource.updateProduct(id, updates);
       await refreshProducts();
     },
     [refreshProducts]
@@ -138,7 +155,7 @@ export function InventoryProvider({ children }) {
 
   const updateFillLevel = useCallback(
     async (id, fillLevel) => {
-      await DB.updateProductFillLevel(id, fillLevel);
+      await dataSource.updateProductFillLevel(id, fillLevel);
       await refreshProducts();
     },
     [refreshProducts]
@@ -146,7 +163,7 @@ export function InventoryProvider({ children }) {
 
   const updatePrice = useCallback(
     async (id, price) => {
-      await DB.updateProductPrice(id, price);
+      await dataSource.updateProductPrice(id, price);
       await refreshProducts();
     },
     [refreshProducts]
@@ -154,7 +171,7 @@ export function InventoryProvider({ children }) {
 
   const deleteProduct = useCallback(
     async (id) => {
-      await DB.deleteProduct(id);
+      await dataSource.deleteProduct(id);
       await refreshProducts();
     },
     [refreshProducts]
@@ -163,28 +180,34 @@ export function InventoryProvider({ children }) {
   const searchProducts = useCallback(
     async (query) => {
       if (!dbReady) return [];
-      return DB.searchProducts(query, currentAreaId);
+      return dataSource.searchProducts(query, currentAreaId);
     },
     [dbReady, currentAreaId]
   );
 
   const getAllProductsForPriceScreen = useCallback(async () => {
     if (!dbReady) return [];
-    return DB.getProducts();
+    return dataSource.getProducts();
   }, [dbReady]);
 
   const getReportStats = useCallback(
     async (areaId = undefined) => {
       if (!dbReady) return { totalBottles: 0, totalValue: 0, lowStock: 0, products: [] };
-      const id = areaId === undefined ? currentAreaId : areaId;
-      return DB.getReportStats(id);
+      if (USE_BACKEND_API && !isAuthenticated) return { totalBottles: 0, totalValue: 0, lowStock: 0, products: [] };
+      try {
+        const id = areaId === undefined ? currentAreaId : areaId;
+        return await dataSource.getReportStats(id);
+      } catch (e) {
+        console.warn('getReportStats failed:', e?.message);
+        return { totalBottles: 0, totalValue: 0, lowStock: 0, products: [] };
+      }
     },
-    [dbReady, currentAreaId]
+    [dbReady, currentAreaId, isAuthenticated]
   );
 
   const getSessions = useCallback(async () => {
     if (!dbReady) return [];
-    return DB.getInventorySessions();
+    return dataSource.getInventorySessions();
   }, [dbReady]);
 
   const value = {
@@ -212,8 +235,8 @@ export function InventoryProvider({ children }) {
     getAllProductsForPriceScreen,
     getReportStats,
     getSessions,
-    getProductById: DB.getProductById,
-    getProductsWithFillLevels: (areaId) => DB.getProductsWithFillLevels(areaId || currentAreaId),
+    getProductById: dataSource.getProductById,
+    getProductsWithFillLevels: (areaId) => dataSource.getProductsWithFillLevels(areaId || currentAreaId),
   };
 
   return (
