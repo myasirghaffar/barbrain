@@ -137,12 +137,8 @@ export default function AddNewProductScreen({ navigation }) {
       try {
         setImageUploadStep("detecting");
         const detectionResult = await detectBottleInImage(uri);
-        if (!detectionResult?.detected) {
-          Alert.alert(
-            t("warning") || "Warning",
-            t("noBottleDetectedMessage") ||
-              "No bottle detected. Please use a clear bottle photo.",
-          );
+        if (detectionResult?.detected) {
+          console.log("Bottle detected");
         }
         setImageUploadStep("resizing");
         const finalUri = await resizeImageToExactHeight(
@@ -218,6 +214,7 @@ export default function AddNewProductScreen({ navigation }) {
         maxHeight: 2000,
         maxWidth: 2000,
         quality: 1,
+        selectionLimit: 1,
       },
       async (res) => {
         if (res?.didCancel || !res?.assets?.[0]?.uri) return;

@@ -99,8 +99,10 @@ export async function initDB() {
 
 export async function getAreas() {
   try {
-    const data = await handleResponse(await api.get('areas'));
-    return Array.isArray(data) ? data : [];
+    const data = await handleResponse(await api.get('categories'));
+    const list = Array.isArray(data) ? data : [];
+    // Map _id to id for frontend compatibility
+    return list.map(a => ({ ...a, id: a._id || a.id }));
   } catch (e) {
     if (e?.message) throw e;
     throw new Error('Failed to load areas');
@@ -109,7 +111,7 @@ export async function getAreas() {
 
 export async function addArea(name) {
   try {
-    const data = await handleResponse(await api.post('areas', { name }));
+    const data = await handleResponse(await api.post('categories', { name }));
     return data?.id ?? data?._id;
   } catch (e) {
     throw new Error(e?.message || 'Failed to add area');
@@ -117,17 +119,24 @@ export async function addArea(name) {
 }
 
 export async function updateArea(id, name) {
-  await api.put(`areas/${id}`, { name });
+  await api.put(`categories/${id}`, { name });
 }
 
 export async function deleteArea(id) {
-  await api.delete(`areas/${id}`);
+  await api.delete(`categories/${id}`);
 }
 
 export async function getProducts(areaId = null) {
-  const params = areaId ? { areaId } : {};
+  const params = areaId ? { categoryId: areaId } : {};
   const data = await handleResponse(await api.get('products', { params }));
-  return Array.isArray(data) ? data : [];
+  const list = Array.isArray(data) ? data : [];
+  return list.map(p => ({
+    ...p,
+    id: p._id || p.id,
+    volume: p.unitSize,
+    image: p.imageURL,
+    areaId: p.categoryId,
+  }));
 }
 
 export async function getProductById(id) {
@@ -137,11 +146,10 @@ export async function getProductById(id) {
 
 export async function addProduct(product) {
   const payload = {
-    areaId: product.areaId,
+    categoryId: product.areaId,
     name: String(product.name || '').trim(),
-    volume: Math.max(0, Number(product.volume) || 0),
-    image: product.image ?? '',
-    category: product.category ?? '',
+    unitSize: Math.max(0, Number(product.volume) || 0),
+    imageURL: product.image ?? '',
     price: Math.max(0, Number(product.price) || 0),
     fillLevel: Math.min(100, Math.max(0, Number(product.fillLevel) || 100)),
   };
@@ -156,21 +164,24 @@ export async function addProducts(products, areaId = 1) {
 }
 
 export async function updateProduct(id, updates) {
-  const allowed = ['name', 'volume', 'image', 'category', 'price', 'fillLevel'];
   const payload = {};
-  for (const k of allowed) {
-    if (updates[k] !== undefined) payload[k] = updates[k];
-  }
+  if (updates.name !== undefined) payload.name = updates.name;
+  if (updates.volume !== undefined) payload.unitSize = updates.volume;
+  if (updates.image !== undefined) payload.imageURL = updates.image;
+  if (updates.areaId !== undefined) payload.categoryId = updates.areaId;
+  if (updates.price !== undefined) payload.price = updates.price;
+  if (updates.fillLevel !== undefined) payload.fillLevel = updates.fillLevel;
+  
   if (Object.keys(payload).length === 0) return;
   await api.put(`products/${id}`, payload);
 }
 
 export async function updateProductFillLevel(id, fillLevel) {
-  await api.patch(`products/${id}/fillLevel`, { fillLevel: Math.round(fillLevel) });
+  await updateProduct(id, { fillLevel: Math.round(fillLevel) });
 }
 
 export async function updateProductPrice(id, price) {
-  await api.patch(`products/${id}/price`, { price });
+  await updateProduct(id, { price });
 }
 
 export async function deleteProduct(id) {
@@ -179,17 +190,25 @@ export async function deleteProduct(id) {
 
 export async function searchProducts(query, areaId = null) {
   const params = { q: (query || '').trim() };
-  if (areaId) params.areaId = areaId;
-  const data = await handleResponse(await api.get('products/search', { params }));
-  return Array.isArray(data) ? data : [];
+  if (areaId) params.categoryId = areaId;
+  const data = await handleResponse(await api.get('products', { params }));
+  const list = Array.isArray(data) ? data : [];
+  return list.map(p => ({
+    ...p,
+    id: p._id || p.id,
+    volume: p.unitSize,
+    image: p.imageURL,
+    areaId: p.categoryId,
+  }));
 }
 
 export async function createInventorySession(areaId, areaName, team = '') {
   const data = await handleResponse(
-    await api.post('inventory/sessions', {
-      areaId,
+    await api.post('inventory', {
+      categoryId: areaId,
       areaName: areaName || '',
       team: team || '',
+      items: [], // Backend might expect initial items
     })
   );
   return data?.id ?? data?._id;
@@ -197,7 +216,7 @@ export async function createInventorySession(areaId, areaName, team = '') {
 
 export async function getInventorySessions(limit = 50) {
   const data = await handleResponse(
-    await api.get('inventory/sessions', { params: { limit } })
+    await api.get('inventory', { params: { limit } })
   );
   return Array.isArray(data) ? data : [];
 }
@@ -210,7 +229,7 @@ export async function getProductsWithFillLevels(areaId) {
 }
 
 export async function getReportStats(areaId = null) {
-  const params = areaId ? { areaId } : {};
+  const params = areaId ? { categoryId: areaId } : {};
   const data = await handleResponse(
     await api.get('inventory/report', { params })
   );
@@ -218,7 +237,13 @@ export async function getReportStats(areaId = null) {
     totalBottles: data?.totalBottles ?? 0,
     totalValue: data?.totalValue ?? 0,
     lowStock: data?.lowStock ?? 0,
-    products: data?.products ?? [],
+    products: (data?.products ?? []).map(p => ({
+      ...p,
+      id: p._id || p.id,
+      volume: p.unitSize,
+      image: p.imageURL,
+      areaId: p.categoryId,
+    })),
   };
 }
 
