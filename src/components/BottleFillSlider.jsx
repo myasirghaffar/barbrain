@@ -138,13 +138,12 @@ function BottleFillSlider({
 
   const imageSource = useMemo(() => {
     const resolved = getBottleImage({ name, image });
-    return (
-      resolved ||
-      (image &&
-        (image.startsWith("http") || image.startsWith("file")
-          ? { uri: image }
-          : null))
-    );
+    if (resolved) return resolved;
+    if (image && typeof image === 'string') {
+      const t = image.trim();
+      if (t.startsWith('http') || t.startsWith('file') || t.startsWith('data:')) return { uri: t };
+    }
+    return null;
   }, [name, image]);
 
   useEffect(() => {

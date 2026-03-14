@@ -34,7 +34,7 @@ export default function ProductListScreen({ navigation }) {
     currentCategoryId, 
     dbReady, 
     searchProducts, 
-    updateArea, 
+    updateCategory, 
     refreshProducts, 
     offlineDownloadEnabled, 
     setOfflineDownloadEnabled, 
@@ -148,11 +148,14 @@ export default function ProductListScreen({ navigation }) {
 
   const saveCategoryName = useCallback(async () => {
     const name = (editCategoryName || "").trim();
-    if (name && currentCategoryId) {
-      await updateArea(currentCategoryId, name);
+    if (!name || !currentCategoryId) return;
+    try {
+      await updateCategory(currentCategoryId, name);
       setEditCategoryVisible(false);
+    } catch (err) {
+      Alert.alert(t("error") || "Error", err?.message || "Failed to update category");
     }
-  }, [editCategoryName, currentCategoryId, updateArea]);
+  }, [editCategoryName, currentCategoryId, updateCategory, t]);
 
   const toggleViewMode = useCallback(() => {
     setViewMode((prev) => (prev === "list" ? "grid" : "list"));

@@ -58,12 +58,17 @@ export function InventoryProvider({ children }) {
     try {
       const list = await dataSource.getCategories();
       setCategories(list);
-      if (list.length && !list.find((c) => c.id === currentCategoryId)) {
-        setCurrentCategoryId(list[0].id);
-        setCurrentCategoryName(list[0].name);
+      const current = list.find((c) => c.id === currentCategoryId);
+      if (current) {
+        setCurrentCategoryName(current.name);
       } else {
-        const current = list.find((c) => c.id === currentCategoryId);
-        if (current) setCurrentCategoryName(current.name);
+        if (list.length) {
+          setCurrentCategoryId(list[0].id);
+          setCurrentCategoryName(list[0].name);
+        } else {
+          setCurrentCategoryId(null);
+          setCurrentCategoryName('');
+        }
       }
     } catch (e) {
       console.warn('refreshCategories failed:', e?.message);

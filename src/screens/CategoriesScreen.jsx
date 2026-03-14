@@ -32,11 +32,11 @@ export default function CategoriesScreen({ navigation }) {
   const {
     categories,
     dbReady,
-    setCurrentAreaId,
-    setCurrentAreaName,
-    updateArea,
-    deleteArea,
-    addArea,
+    setCurrentCategoryId,
+    setCurrentCategoryName,
+    updateCategory,
+    deleteCategory,
+    addCategory,
     getReportStats,
   } = useInventory();
   const { t, locale, setLocale } = useLanguage();
@@ -76,12 +76,12 @@ export default function CategoriesScreen({ navigation }) {
         setCategoryName(item.name || "");
         setEditModalVisible(true);
       } else {
-        setCurrentAreaId(item.id);
-        setCurrentAreaName(item.name);
+        setCurrentCategoryId(item.id);
+        setCurrentCategoryName(item.name);
         navigation.navigate("ProductList");
       }
     },
-    [editMode, setCurrentAreaId, setCurrentAreaName, navigation],
+    [editMode, setCurrentCategoryId, setCurrentCategoryName, navigation],
   );
 
   const openAddCategory = useCallback(() => {
@@ -93,20 +93,24 @@ export default function CategoriesScreen({ navigation }) {
     const name = (newCategoryName || "").trim();
     if (!name) return;
     try {
-      await addArea(name);
+      await addCategory(name);
       setAddModalVisible(false);
     } catch (err) {
       Alert.alert(t("addCategory") || "Add category", err?.message || "Failed to add category");
     }
-  }, [newCategoryName, addArea, t]);
+  }, [newCategoryName, addCategory, t]);
 
   const saveEditCategory = useCallback(async () => {
     const name = (categoryName || "").trim();
     if (!name || !editCategory?.id) return;
-    await updateArea(editCategory.id, name);
-    setEditModalVisible(false);
-    setEditCategory(null);
-  }, [categoryName, editCategory, updateArea]);
+    try {
+      await updateCategory(editCategory.id, name);
+      setEditModalVisible(false);
+      setEditCategory(null);
+    } catch (err) {
+      Alert.alert(t("error") || "Error", err?.message || "Failed to update category");
+    }
+  }, [categoryName, editCategory, updateCategory, t]);
 
   const confirmDeleteCategory = useCallback(() => {
     if (!editCategory?.id) return;
@@ -120,14 +124,18 @@ export default function CategoriesScreen({ navigation }) {
           text: t("delete") || "Delete",
           style: "destructive",
           onPress: async () => {
-            await deleteArea(editCategory.id);
-            setEditModalVisible(false);
-            setEditCategory(null);
+            try {
+              await deleteCategory(editCategory.id);
+              setEditModalVisible(false);
+              setEditCategory(null);
+            } catch (err) {
+              Alert.alert(t("error") || "Error", err?.message || "Failed to delete category");
+            }
           },
         },
       ],
     );
-  }, [editCategory, deleteArea, t]);
+  }, [editCategory, deleteCategory, t]);
 
   if (!dbReady) {
     return (

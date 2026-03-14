@@ -6,9 +6,23 @@ import axios from 'axios';
 import RNFS from 'react-native-fs';
 import {
   getApiFullUrl,
+  getApiBaseUrl,
   switchToLiveUrl,
   isUsingLiveUrl,
 } from '../config/api';
+
+/** Make product image URL absolute and use HTTPS so the app can load it (Android/iOS block HTTP). */
+function normalizeProductImageUrl(uri) {
+  if (!uri || typeof uri !== 'string') return uri || '';
+  const t = uri.trim();
+  if (t.startsWith('data:')) return t;
+  if (t.startsWith('/')) return `${getApiBaseUrl().replace(/\/$/, '')}${t}`;
+  if (t.startsWith('http://')) {
+    return 'https://' + t.slice(7);
+  }
+  if (t.startsWith('https://')) return t;
+  return t;
+}
 
 let authToken = null;
 
@@ -105,6 +119,30 @@ async function imageToBase64(uri) {
   }
 }
 
+/**
+ * Upload a product image file. Returns the public URL to use as product.image.
+ * @param {string} uri - Local file URI (file:// or path)
+ * @returns {Promise<string>} URL of the uploaded image
+ */
+export async function uploadProductImage(uri) {
+  if (!uri || typeof uri !== 'string') return '';
+  if (uri.startsWith('data:image') || uri.startsWith('http://') || uri.startsWith('https://')) return uri;
+
+  const formData = new FormData();
+  const ext = uri.split('.').pop()?.toLowerCase() || 'jpg';
+  const mime = ext === 'jpg' || ext === 'jpeg' ? 'image/jpeg' : ext === 'png' ? 'image/png' : 'image/webp';
+  formData.append('image', {
+    uri: uri.startsWith('file://') ? uri : `file://${uri}`,
+    type: mime,
+    name: `image.${ext}`,
+  });
+
+  const data = await handleResponse(await api.post('products/upload-image', formData, {
+    headers: { 'Content-Type': 'multipart/form-data' },
+  }));
+  return data?.url ?? '';
+}
+
 export async function initDB() {
   return true;
 }
@@ -153,18 +191,38 @@ export async function getProducts(categoryId = null) {
     ...p,
     id: p._id || p.id,
     volume: p.volume || p.unitSize,
-    image: p.image || p.imageURL,
+    image: normalizeProductImageUrl(p.image || p.imageURL),
     categoryId: p.categoryId,
   }));
 }
 
 export async function getProductById(id) {
   const data = await handleResponse(await api.get(`products/${id}`));
-  return data || null;
+  if (!data) return null;
+  return {
+    ...data,
+    id: data._id || data.id,
+    image: normalizeProductImageUrl(data.image || data.imageURL),
+  };
 }
 
 export async function addProduct(product) {
-  const image = await imageToBase64(product.image);
+  let image = product.image ?? '';
+  if (image && (image.startsWith('file://') || (image.startsWith('/') && !image.startsWith('//')))) {
+    try {
+      const url = await uploadProductImage(image);
+      if (url) image = url;
+    } catch (_) {
+      image = await imageToBase64(image);
+    }
+  } else if (image && !image.startsWith('data:') && !image.startsWith('http')) {
+    image = await imageToBase64(image);
+  } else if (image && (image.startsWith('http://') || image.startsWith('https://'))) {
+    // keep URL as-is
+  } else if (image) {
+    image = await imageToBase64(image);
+  }
+
   const payload = {
     categoryId: product.categoryId,
     name: String(product.name || '').trim(),
@@ -191,13 +249,24 @@ export async function updateProduct(id, updates) {
   if (updates.name !== undefined) payload.name = updates.name;
   if (updates.volume !== undefined) payload.volume = updates.volume;
   if (updates.image !== undefined) {
-    payload.image = await imageToBase64(updates.image);
+    let img = updates.image;
+    if (img && (img.startsWith('file://') || (img.startsWith('/') && !img.startsWith('//')))) {
+      try {
+        const url = await uploadProductImage(img);
+        if (url) img = url;
+      } catch (_) {
+        img = await imageToBase64(img);
+      }
+    } else if (img && !img.startsWith('data:') && !img.startsWith('http')) {
+      img = await imageToBase64(img);
+    }
+    payload.image = img ?? '';
   }
   if (updates.categoryId !== undefined) payload.categoryId = updates.categoryId;
   if (updates.subCategoryId !== undefined) payload.subCategoryId = updates.subCategoryId;
   if (updates.price !== undefined) payload.price = updates.price;
   if (updates.fillLevel !== undefined) payload.fillLevel = updates.fillLevel;
-  
+
   if (Object.keys(payload).length === 0) return;
   await api.put(`products/${id}`, payload);
 }
@@ -223,18 +292,17 @@ export async function searchProducts(query, categoryId = null) {
     ...p,
     id: p._id || p.id,
     volume: p.volume || p.unitSize,
-    image: p.image || p.imageURL,
+    image: normalizeProductImageUrl(p.image || p.imageURL),
     categoryId: p.categoryId,
   }));
 }
 
 export async function createInventorySession(categoryId, categoryName, team = '') {
   const data = await handleResponse(
-    await api.post('inventory', {
-      categoryId,
-      categoryName: categoryName || '',
+    await api.post('inventory/sessions', {
+      areaId: categoryId,
+      areaName: categoryName || '',
       team: team || '',
-      items: [],
     })
   );
   return data?.id ?? data?._id;
@@ -242,9 +310,15 @@ export async function createInventorySession(categoryId, categoryName, team = ''
 
 export async function getInventorySessions(limit = 50) {
   const data = await handleResponse(
-    await api.get('inventory', { params: { limit } })
+    await api.get('inventory/sessions', { params: { limit } })
   );
-  return Array.isArray(data) ? data : [];
+  const list = Array.isArray(data) ? data : [];
+  return list.map(s => ({
+    ...s,
+    id: s.id || s._id,
+    categoryName: s.categoryName ?? s.areaName,
+    areaName: s.areaName ?? s.categoryName,
+  }));
 }
 
 export async function getProductsWithFillLevels(categoryId) {
@@ -267,7 +341,7 @@ export async function getReportStats(categoryId = null) {
       ...p,
       id: p._id || p.id,
       volume: p.volume || p.unitSize,
-      image: p.image || p.imageURL,
+      image: normalizeProductImageUrl(p.image || p.imageURL),
       categoryId: p.categoryId,
     })),
   };
