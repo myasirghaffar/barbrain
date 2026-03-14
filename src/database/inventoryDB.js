@@ -47,6 +47,7 @@ async function createTables() {
       subCategory TEXT,
       price REAL DEFAULT 0,
       fillLevel INTEGER DEFAULT 100,
+      fullBottles INTEGER DEFAULT 0,
       createdAt TEXT,
       FOREIGN KEY (categoryId) REFERENCES categories(id)
     )`,
@@ -71,6 +72,12 @@ async function createTables() {
   ];
   for (const s of sql) {
     await db.executeSql(s);
+  }
+  // Migration: add fullBottles to products if missing (existing DBs)
+  try {
+    await db.executeSql('ALTER TABLE products ADD COLUMN fullBottles INTEGER DEFAULT 0');
+  } catch (_) {
+    // Column already exists
   }
   // Ensure default category exists
   await db.executeSql(
@@ -189,11 +196,11 @@ export async function getProductById(id) {
 }
 
 export async function addProduct(product) {
-  const { name, volume, image, subCategory, price, fillLevel, categoryId = 1 } = product;
+  const { name, volume, image, subCategory, price, fillLevel, fullBottles = 0, categoryId = 1 } = product;
   await runSql(
-    `INSERT INTO products (categoryId, name, volume, image, subCategory, price, fillLevel, createdAt)
-     VALUES (?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
-    [categoryId, name || '', volume || 0, image || '', subCategory || '', Number(price) || 0, Number(fillLevel) ?? 100]
+    `INSERT INTO products (categoryId, name, volume, image, subCategory, price, fillLevel, fullBottles, createdAt)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, datetime('now'))`,
+    [categoryId, name || '', volume || 0, image || '', subCategory || '', Number(price) || 0, Number(fillLevel) ?? 100, Math.max(0, Math.floor(fullBottles))]
   );
   const { rows } = await runSql('SELECT last_insert_rowid() as id');
   return rows[0]?.id;
@@ -205,16 +212,35 @@ export async function addProducts(products, categoryId = 1) {
   }
 }
 
+function normalizeUpdateValue(k, v) {
+  if (k === 'fillLevel' && v !== undefined) {
+    const n = Number(v);
+    if (Number.isNaN(n)) return 100;
+    return Math.min(100, Math.max(0, Math.round(n)));
+  }
+  if (k === 'fullBottles' && v !== undefined) {
+    const n = Number(v);
+    if (Number.isNaN(n)) return 0;
+    return Math.max(0, Math.floor(n));
+  }
+  return v;
+}
+
 export async function updateProduct(id, updates) {
-  const allowed = ['name', 'volume', 'image', 'subCategory', 'price', 'fillLevel', 'categoryId'];
-  const setClause = allowed.filter((k) => updates[k] !== undefined).map((k) => `${k} = ?`).join(', ');
-  const values = allowed.filter((k) => updates[k] !== undefined).map((k) => updates[k]);
+  const allowed = ['name', 'volume', 'image', 'subCategory', 'price', 'fillLevel', 'fullBottles', 'categoryId'];
+  const keys = allowed.filter((k) => updates[k] !== undefined);
+  const setClause = keys.map((k) => `${k} = ?`).join(', ');
+  const values = keys.map((k) => normalizeUpdateValue(k, updates[k]));
   if (values.length === 0) return;
   await runSql(`UPDATE products SET ${setClause} WHERE id = ?`, [...values, id]);
 }
 
 export async function updateProductFillLevel(id, fillLevel) {
   await runSql('UPDATE products SET fillLevel = ? WHERE id = ?', [Math.round(fillLevel), id]);
+}
+
+export async function updateProductFullBottles(id, fullBottles) {
+  await runSql('UPDATE products SET fullBottles = ? WHERE id = ?', [Math.max(0, Math.floor(fullBottles)), id]);
 }
 
 export async function updateProductPrice(id, price) {

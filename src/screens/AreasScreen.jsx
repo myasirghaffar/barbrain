@@ -41,9 +41,10 @@ export default function AreasScreen({ navigation }) {
   const [areaName, setAreaName] = useState("");
   const [stats, setStats] = useState({ totalBottles: 0, totalValue: 0, lowStock: 0 });
 
+  // Fetch stats from API when ready and when tab is shown
   useEffect(() => {
     if (!dbReady) return;
-    getReportStats(null).then(setStats);
+    getReportStats(null).then(setStats).catch(() => setStats({ totalBottles: 0, totalValue: 0, lowStock: 0 }));
   }, [dbReady, getReportStats]);
 
   const onAreaPress = useCallback(
@@ -184,7 +185,7 @@ export default function AreasScreen({ navigation }) {
         <Text style={styles.sectionTitle}>{t("selectArea")}</Text>
 
         <View style={styles.areasGrid}>
-          {areas.map((item) => (
+          {(areas || []).map((item) => (
             <TouchableOpacity
               key={item.id}
               style={[styles.areaCard, editMode && styles.areaCardEdit]}

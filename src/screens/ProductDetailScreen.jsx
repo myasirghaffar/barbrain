@@ -1,7 +1,7 @@
 /**
  * Single product detail view. Bottle with smooth fill-level slider and full-bottle counter.
  */
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -13,19 +13,43 @@ import { Icon, Icons } from '../assets/icons';
 import { useLanguage } from '../context/LanguageContext';
 import { useInventory } from '../context/InventoryContext';
 import BottleFillSlider from '../components/BottleFillSlider';
+import { FULL_BOTTLES_SAVE_DEBOUNCE_MS } from '../config/constants';
 import { colors, spacing } from '../theme/colors';
 
 export default function ProductDetailScreen({ route, navigation }) {
   const { product } = route.params || {};
   const { t } = useLanguage();
-  const { updateFillLevel } = useInventory();
-  const [fullBottles, setFullBottles] = useState(0);
+  const { updateFillLevel, updateFullBottles, getProductById } = useInventory();
+  const initialFullBottles = product?.fullBottles ?? 0;
+  const [fullBottles, setFullBottles] = useState(initialFullBottles);
   const initialFill = product?.fillLevel != null ? product.fillLevel : 100;
   const [localFillLevel, setLocalFillLevel] = useState(initialFill);
+  const saveFullBottlesTimeout = useRef(null);
+  const pendingFullBottlesRef = useRef(null);
+
+  // When opening detail, load saved values so we default to previous (not 0)
+  useEffect(() => {
+    if (!product?.id) return;
+    setLocalFillLevel(product?.fillLevel != null ? product.fillLevel : 100);
+    setFullBottles(product?.fullBottles ?? 0);
+    if (!getProductById) return;
+    let mounted = true;
+    getProductById(product.id).then((fresh) => {
+      if (!mounted || !fresh) return;
+      setLocalFillLevel(fresh.fillLevel != null ? fresh.fillLevel : 100);
+      setFullBottles(fresh.fullBottles ?? 0);
+    }).catch(() => {});
+    return () => { mounted = false; };
+  }, [product?.id, getProductById]);
+
+  // Sync from list when it has values (e.g. after refresh); don't overwrite with 0 when list is stale
+  useEffect(() => {
+    if (product?.fillLevel != null) setLocalFillLevel(product.fillLevel);
+  }, [product?.id, product?.fillLevel]);
 
   useEffect(() => {
-    setLocalFillLevel(product?.fillLevel != null ? product.fillLevel : 100);
-  }, [product?.id, product?.fillLevel]);
+    if (product?.fullBottles != null) setFullBottles(product.fullBottles);
+  }, [product?.id, product?.fullBottles]);
 
   const handleFillChange = useCallback(
     async (fillLevel) => {
@@ -35,6 +59,41 @@ export default function ProductDetailScreen({ route, navigation }) {
     },
     [product?.id, updateFillLevel]
   );
+
+  const scheduleSaveFullBottles = useCallback(
+    (nextCount) => {
+      pendingFullBottlesRef.current = nextCount;
+      if (saveFullBottlesTimeout.current) clearTimeout(saveFullBottlesTimeout.current);
+      saveFullBottlesTimeout.current = setTimeout(() => {
+        saveFullBottlesTimeout.current = null;
+        const toSave = pendingFullBottlesRef.current;
+        pendingFullBottlesRef.current = null;
+        if (product?.id && toSave != null) updateFullBottles(product.id, toSave);
+      }, FULL_BOTTLES_SAVE_DEBOUNCE_MS);
+    },
+    [product?.id, updateFullBottles]
+  );
+
+  useEffect(() => {
+    return () => {
+      if (saveFullBottlesTimeout.current) clearTimeout(saveFullBottlesTimeout.current);
+      if (pendingFullBottlesRef.current != null && product?.id) {
+        updateFullBottles(product.id, pendingFullBottlesRef.current);
+      }
+    };
+  }, [product?.id, updateFullBottles]);
+
+  const handleDecrementFullBottles = useCallback(() => {
+    const next = Math.max(0, fullBottles - 1);
+    setFullBottles(next);
+    scheduleSaveFullBottles(next);
+  }, [fullBottles, scheduleSaveFullBottles]);
+
+  const handleIncrementFullBottles = useCallback(() => {
+    const next = fullBottles + 1;
+    setFullBottles(next);
+    scheduleSaveFullBottles(next);
+  }, [fullBottles, scheduleSaveFullBottles]);
 
   if (!product) {
     return (
@@ -83,7 +142,7 @@ export default function ProductDetailScreen({ route, navigation }) {
         <View style={styles.quantityRow}>
           <TouchableOpacity
             style={styles.quantityBtn}
-            onPress={() => setFullBottles((n) => Math.max(0, n - 1))}
+            onPress={handleDecrementFullBottles}
             activeOpacity={0.8}
           >
             <Icon name={Icons.remove} size={28} color={colors.white} />
@@ -96,7 +155,7 @@ export default function ProductDetailScreen({ route, navigation }) {
           </View>
           <TouchableOpacity
             style={styles.quantityBtn}
-            onPress={() => setFullBottles((n) => n + 1)}
+            onPress={handleIncrementFullBottles}
             activeOpacity={0.8}
           >
             <Icon name={Icons.add} size={28} color={colors.white} />

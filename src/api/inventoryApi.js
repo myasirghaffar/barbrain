@@ -199,6 +199,7 @@ export async function getProducts(areaId = null) {
     image: normalizeProductImageUrl(p.image || p.imageURL),
     areaId: p.areaId,
     categoryId: p.categoryId,
+    fullBottles: p.fullBottles ?? 0,
   }));
 }
 
@@ -209,6 +210,7 @@ export async function getProductById(id) {
     ...data,
     id: data._id || data.id,
     image: normalizeProductImageUrl(data.image || data.imageURL),
+    fullBottles: data.fullBottles ?? 0,
   };
 }
 
@@ -232,6 +234,7 @@ export async function addProduct(product) {
     image: image ?? '',
     price: Math.max(0, Number(product.price) || 0),
     fillLevel: Math.min(100, Math.max(0, Number(product.fillLevel) || 100)),
+    fullBottles: Math.max(0, Math.floor(Number(product.fullBottles) || 0)),
   };
   if (product.categoryId) payload.categoryId = product.categoryId;
   if (product.category) payload.category = product.category;
@@ -266,8 +269,11 @@ export async function updateProduct(id, updates) {
   }
   if (updates.areaId !== undefined) payload.areaId = updates.areaId;
   if (updates.categoryId !== undefined) payload.categoryId = updates.categoryId;
+  if (updates.category !== undefined) payload.category = updates.category;
+  if (updates.subCategory !== undefined) payload.category = updates.subCategory;
   if (updates.price !== undefined) payload.price = updates.price;
   if (updates.fillLevel !== undefined) payload.fillLevel = updates.fillLevel;
+  if (updates.fullBottles !== undefined) payload.fullBottles = Math.max(0, Math.floor(updates.fullBottles));
 
   if (Object.keys(payload).length === 0) return;
   await api.put(`products/${id}`, payload);
@@ -275,6 +281,10 @@ export async function updateProduct(id, updates) {
 
 export async function updateProductFillLevel(id, fillLevel) {
   await api.patch(`products/${id}/fillLevel`, { fillLevel: Math.round(fillLevel) });
+}
+
+export async function updateProductFullBottles(id, fullBottles) {
+  await api.patch(`products/${id}/fullBottles`, { fullBottles: Math.max(0, Math.floor(fullBottles)) });
 }
 
 export async function updateProductPrice(id, price) {
@@ -297,6 +307,7 @@ export async function searchProducts(query, areaId = null) {
     image: normalizeProductImageUrl(p.image || p.imageURL),
     areaId: p.areaId,
     categoryId: p.categoryId,
+    fullBottles: p.fullBottles ?? 0,
   }));
 }
 
@@ -352,6 +363,7 @@ export async function getReportStats(areaId = null) {
       image: normalizeProductImageUrl(p.image || p.imageURL),
       areaId: p.areaId,
       categoryId: p.categoryId,
+      fullBottles: p.fullBottles ?? 0,
     })),
   };
 }

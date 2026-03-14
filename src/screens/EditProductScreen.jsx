@@ -33,7 +33,7 @@ export default function EditProductScreen({ route, navigation }) {
   const { t } = useLanguage();
   const [name, setName] = useState(product?.name ?? '');
   const [volume, setVolume] = useState(product?.volume != null ? String(product.volume) : '');
-  const [subCategory, setSubCategory] = useState(product?.subCategory ?? '');
+  const [subCategory, setSubCategory] = useState(product?.category ?? product?.subCategory ?? '');
   const [price, setPrice] = useState(product?.price != null ? String(product.price) : '');
   const [imageUri, setImageUri] = useState(null);
   const [imageUrl, setImageUrl] = useState(product?.image && typeof product.image === 'string' ? product.image : '');
@@ -44,7 +44,7 @@ export default function EditProductScreen({ route, navigation }) {
     if (product) {
       setName(product.name ?? '');
       setVolume(product.volume != null ? String(product.volume) : '');
-      setSubCategory(product.subCategory ?? '');
+      setSubCategory(product.category ?? product.subCategory ?? '');
       setPrice(product.price != null ? String(product.price) : '');
       setImageUrl(product.image && typeof product.image === 'string' ? product.image : '');
       setImageUri(null);

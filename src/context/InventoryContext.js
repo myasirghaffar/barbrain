@@ -62,7 +62,7 @@ export function InventoryProvider({ children }) {
     if (USE_BACKEND_API && !isAuthenticated) return;
     try {
       const list = await (dataSource.getAreas ? dataSource.getAreas() : dataSource.getCategories());
-      setAreas(list);
+      setAreas(Array.isArray(list) ? list : []);
       const current = list.find((a) => (a.id === currentAreaId || a.id === currentCategoryId));
       if (current) {
         setCurrentAreaName(current.name);
@@ -77,6 +77,7 @@ export function InventoryProvider({ children }) {
       }
     } catch (e) {
       console.warn('refreshAreas failed:', e?.message);
+      setAreas([]);
     }
   }, [dbReady, currentAreaId, currentCategoryId, isAuthenticated]);
 
@@ -173,6 +174,14 @@ export function InventoryProvider({ children }) {
     [refreshProducts]
   );
 
+  const updateFullBottles = useCallback(
+    async (id, fullBottles) => {
+      await dataSource.updateProductFullBottles(id, fullBottles);
+      await refreshProducts();
+    },
+    [refreshProducts]
+  );
+
   const updatePrice = useCallback(
     async (id, price) => {
       await dataSource.updateProductPrice(id, price);
@@ -260,6 +269,7 @@ export function InventoryProvider({ children }) {
     addProducts,
     updateProduct,
     updateFillLevel,
+    updateFullBottles,
     updatePrice,
     deleteProduct,
     searchProducts,
