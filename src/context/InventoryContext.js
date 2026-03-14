@@ -215,6 +215,16 @@ export function InventoryProvider({ children }) {
     return dataSource.getInventorySessions();
   }, [dbReady]);
 
+  const createSession = useCallback(async (categoryId, categoryName, team = '') => {
+    if (!dbReady) return null;
+    return dataSource.createInventorySession(categoryId, categoryName, team);
+  }, [dbReady]);
+
+  const addSessionItems = useCallback(async (sessionId, items) => {
+    if (!dbReady) return;
+    return dataSource.addInventorySessionItems(sessionId, items);
+  }, [dbReady]);
+
   const value = {
     dbReady,
     products,
@@ -240,6 +250,8 @@ export function InventoryProvider({ children }) {
     getAllProductsForPriceScreen,
     getReportStats,
     getSessions,
+    createSession,
+    addSessionItems,
     getProductById: dataSource.getProductById,
     getProductsWithFillLevels: (categoryId) => dataSource.getProductsWithFillLevels(categoryId || currentCategoryId),
   };

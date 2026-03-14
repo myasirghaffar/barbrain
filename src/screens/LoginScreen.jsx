@@ -33,8 +33,14 @@ export default function LoginScreen({ navigation }) {
   const handleSignIn = async () => {
     const e = (email || '').trim();
     const p = password || '';
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
     if (!e) {
       setError(t('email') + ' is required');
+      return;
+    }
+    if (!emailRegex.test(e)) {
+      setError('Invalid email format');
       return;
     }
     if (!p) {

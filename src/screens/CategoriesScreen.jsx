@@ -93,6 +93,10 @@ export default function CategoriesScreen({ navigation }) {
     const name = (newCategoryName || "").trim();
     if (!name) return;
     try {
+      if (name.length < 2) {
+        Alert.alert(t("addCategory"), "Category name must be at least 2 characters.");
+        return;
+      }
       await addCategory(name);
       setAddModalVisible(false);
     } catch (err) {
@@ -100,401 +104,397 @@ export default function CategoriesScreen({ navigation }) {
     }
   }, [newCategoryName, addCategory, t]);
 
-  const saveEditCategory = useCallback(async () => {
-    const name = (categoryName || "").trim();
-    if (!name || !editCategory?.id) return;
-    try {
-      await updateCategory(editCategory.id, name);
-      setEditModalVisible(false);
-      setEditCategory(null);
-    } catch (err) {
-      Alert.alert(t("error") || "Error", err?.message || "Failed to update category");
-    }
-  }, [categoryName, editCategory, updateCategory, t]);
+const saveEditCategory = useCallback(async () => {
+  const name = (categoryName || "").trim();
+  if (!name || !editCategory?.id) return;
+  if (name.length < 2) {
+    Alert.alert(t("editCategory"), "Category name must be at least 2 characters.");
+    return;
+  }
+  await updateCategory(editCategory.id, name);
+  setEditModalVisible(false);
+  setEditCategory(null);
+}, [categoryName, editCategory, updateCategory, t]);
 
-  const confirmDeleteCategory = useCallback(() => {
-    if (!editCategory?.id) return;
-    Alert.alert(
-      t("deleteCategoryTitle") || "Delete category",
-      t("deleteCategoryMessage") ||
-      "Do you really want to delete this category and its products?",
-      [
-        { text: t("cancel") || "Cancel", style: "cancel" },
-        {
-          text: t("delete") || "Delete",
-          style: "destructive",
-          onPress: async () => {
-            try {
-              await deleteCategory(editCategory.id);
-              setEditModalVisible(false);
-              setEditCategory(null);
-            } catch (err) {
-              Alert.alert(t("error") || "Error", err?.message || "Failed to delete category");
-            }
-          },
+const confirmDeleteCategory = useCallback(() => {
+  if (!editCategory?.id) return;
+  Alert.alert(
+    t("deleteCategoryTitle") || "Delete category",
+    t("deleteCategoryMessage") ||
+    "Do you really want to delete this category and its products?",
+    [
+      { text: t("cancel") || "Cancel", style: "cancel" },
+      {
+        text: t("delete") || "Delete",
+        style: "destructive",
+        onPress: async () => {
+          await deleteCategory(editCategory.id);
+          setEditModalVisible(false);
+          setEditCategory(null);
         },
-      ],
-    );
+      },
+    ],
+  );
   }, [editCategory, deleteCategory, t]);
 
-  if (!dbReady) {
-    return (
-      <View style={styles.centered}>
-        <ActivityIndicator size="large" color={colors.primaryBlue} />
-      </View>
-    );
-  }
-
+if (!dbReady) {
   return (
-    <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
-      <View style={styles.safeInner}>
-        <View style={styles.header}>
-          <View style={styles.headerLeft}>
-            <View style={styles.headerLogoWrap}>
-              <Image
-                source={appLogo}
-                style={styles.headerLogo}
-                resizeMode="contain"
-              />
-            </View>
-          </View>
-          <View style={styles.headerIcons}>
-            <View style={styles.langSwitcher}>
-              <TouchableOpacity
-                style={[
-                  styles.langBtn,
-                  locale === "en" && styles.langBtnActive,
-                ]}
-                onPress={() => setLocale("en")}
-              >
-                <Text
-                  style={[
-                    styles.langBtnText,
-                    locale === "en" && styles.langBtnTextActive,
-                  ]}
-                >
-                  {t("langEn")}
-                </Text>
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={[
-                  styles.langBtn,
-                  locale === "de" && styles.langBtnActive,
-                ]}
-                onPress={() => setLocale("de")}
-              >
-                <Text
-                  style={[
-                    styles.langBtnText,
-                    locale === "de" && styles.langBtnTextActive,
-                  ]}
-                >
-                  {t("langDe")}
-                </Text>
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity
-              style={[styles.iconBtn, editMode && styles.iconBtnActive]}
-              onPress={() => setEditMode((prev) => !prev)}
-            >
-              <Icon
-                name={Icons.edit}
-                size={22}
-                color={editMode ? colors.primaryBlue : colors.textPrimary}
-              />
-            </TouchableOpacity>
-            <TouchableOpacity
-              style={styles.iconBtn}
-              onPress={() => navigation.navigate("Settings")}
-            >
-              <Icon
-                name={Icons.settings}
-                size={22}
-                color={colors.textPrimary}
-              />
-            </TouchableOpacity>
+    <View style={styles.centered}>
+      <ActivityIndicator size="large" color={colors.primaryBlue} />
+    </View>
+  );
+}
+
+return (
+  <SafeAreaView style={styles.safe} edges={["top", "left", "right"]}>
+    <View style={styles.safeInner}>
+      <View style={styles.header}>
+        <View style={styles.headerLeft}>
+          <View style={styles.headerLogoWrap}>
+            <Image
+              source={appLogo}
+              style={styles.headerLogo}
+              resizeMode="contain"
+            />
           </View>
         </View>
-
-        <View style={styles.content}>
-          <View style={styles.statsRow}>
-            <View style={[styles.statCard, shadows.card]}>
-              <Icon
-                name={Icons.inventory2}
-                size={28}
-                color={colors.primaryBlue}
-                style={styles.statIcon}
-              />
-              <Text style={styles.statValue}>{stats.totalBottles}</Text>
-              <Text style={styles.statLabel}>{t("totalBottles")}</Text>
-            </View>
-            <View style={[styles.statCard, shadows.card]}>
-              <Icon
-                name={Icons.euro}
-                size={28}
-                color={colors.accentGreen}
-                style={styles.statIcon}
-              />
-              <Text style={styles.statValue}>
-                {typeof stats.totalValue === "number"
-                  ? `${stats.totalValue.toFixed(2)} €`
-                  : "0.00 €"}
-              </Text>
-              <Text style={styles.statLabel}>{t("stockValue")}</Text>
-            </View>
+        <View style={styles.headerIcons}>
+          <View style={styles.langSwitcher}>
             <TouchableOpacity
-              style={[styles.statCard, shadows.card]}
-              onPress={() => setLowStockModalVisible(true)}
-              activeOpacity={0.8}
+              style={[
+                styles.langBtn,
+                locale === "en" && styles.langBtnActive,
+              ]}
+              onPress={() => setLocale("en")}
             >
-              <Icon
-                name={Icons.warning}
-                size={28}
-                color={
-                  stats.lowStock > 0 ? colors.danger : colors.textSecondary
-                }
-                style={styles.statIcon}
-              />
               <Text
                 style={[
-                  styles.statValue,
-                  stats.lowStock > 0 && styles.statValueDanger,
+                  styles.langBtnText,
+                  locale === "en" && styles.langBtnTextActive,
                 ]}
               >
-                {stats.lowStock}
+                {t("langEn")}
               </Text>
-              <Text style={styles.statLabel}>{t("lowStock")}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={[
+                styles.langBtn,
+                locale === "de" && styles.langBtnActive,
+              ]}
+              onPress={() => setLocale("de")}
+            >
+              <Text
+                style={[
+                  styles.langBtnText,
+                  locale === "de" && styles.langBtnTextActive,
+                ]}
+              >
+                {t("langDe")}
+              </Text>
             </TouchableOpacity>
           </View>
-          <SearchBar
-            value={search}
-            onChangeText={setSearch}
-            placeholder={t("searchArea")}
-          />
-          {editMode && (
-            <View style={styles.editModeBanner}>
-              <Icon name={Icons.edit} size={18} color={colors.primaryBlue} />
-              <Text style={styles.editModeBannerText}>
-                {t("tapItemToEdit")}
-              </Text>
-            </View>
-          )}
-          <View style={styles.sectionTitleRow}>
-            <Icon
-              name={Icons.folderOpen}
-              size={20}
-              color={colors.primaryBlue}
-              style={styles.sectionIcon}
-            />
-            <Text style={styles.sectionTitle}>{t("yourAreas")}</Text>
-          </View>
-          <FlatList
-            data={filtered}
-            keyExtractor={(item) => String(item.id)}
-            contentContainerStyle={styles.listContent}
-            showsVerticalScrollIndicator={false}
-            ListEmptyComponent={
-              <View style={styles.emptyWrap}>
-                <Icon
-                  name={Icons.inventory2}
-                  size={48}
-                  color={colors.textSecondary}
-                />
-                <Text style={styles.emptyText}>{t("noAreasFound")}</Text>
-              </View>
-            }
-            renderItem={({ item, index }) => (
-              <TouchableOpacity
-                style={[styles.categoryCard, shadows.card]}
-                onPress={() => onCategoryPress(item)}
-                activeOpacity={0.7}
-              >
-                <View
-                  style={[
-                    styles.categoryIcon,
-                    {
-                      backgroundColor: CATEGORY_COLORS[index % CATEGORY_COLORS.length],
-                    },
-                  ]}
-                >
-                  <Icon name={Icons.clipboard} size={24} color={colors.white} />
-                </View>
-                <Text style={styles.categoryName}>{item.name}</Text>
-                {item.lastSession && (
-                  <View style={styles.statusBadge}>
-                    <Text style={styles.statusText}>{item.lastSession}</Text>
-                  </View>
-                )}
-              </TouchableOpacity>
-            )}
-          />
-        </View>
-
-        <FloatingAddButton onPress={openAddCategory} />
-
-        <Modal visible={addModalVisible} transparent animationType="fade">
           <TouchableOpacity
-            style={styles.modalOverlay}
-            activeOpacity={1}
-            onPress={() => setAddModalVisible(false)}
+            style={[styles.iconBtn, editMode && styles.iconBtnActive]}
+            onPress={() => setEditMode((prev) => !prev)}
           >
-            <KeyboardAvoidingView
-              behavior={Platform.OS === "ios" ? "padding" : undefined}
-              style={styles.modalWrap}
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={(e) => e.stopPropagation()}
-              >
-                <View style={styles.modalBox}>
-                  <Text style={styles.modalTitle}>{t("addCategory")}</Text>
-                  <TextInput
-                    style={styles.modalInput}
-                    value={newCategoryName}
-                    onChangeText={setNewCategoryName}
-                    placeholder={t("categoryNamePlaceholder")}
-                    placeholderTextColor={colors.textSecondary}
-                    autoFocus
-                  />
-                  <View style={styles.modalActions}>
-                    <TouchableOpacity
-                      onPress={() => setAddModalVisible(false)}
-                      style={styles.modalBtn}
-                    >
-                      <Text style={styles.modalBtnCancel}>{t("cancel")}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={saveNewCategory}
-                      style={styles.modalBtn}
-                    >
-                      <Text style={styles.modalBtnSave}>
-                        {t("saveCategory")}
-                      </Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </TouchableOpacity>
-            </KeyboardAvoidingView>
+            <Icon
+              name={Icons.edit}
+              size={22}
+              color={editMode ? colors.primaryBlue : colors.textPrimary}
+            />
           </TouchableOpacity>
-        </Modal>
-
-        <Modal visible={lowStockModalVisible} transparent animationType="fade">
           <TouchableOpacity
-            style={styles.modalOverlay}
-            activeOpacity={1}
-            onPress={() => setLowStockModalVisible(false)}
+            style={styles.iconBtn}
+            onPress={() => navigation.navigate("Settings")}
+          >
+            <Icon
+              name={Icons.settings}
+              size={22}
+              color={colors.textPrimary}
+            />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      <View style={styles.content}>
+        <View style={styles.statsRow}>
+          <View style={[styles.statCard, shadows.card]}>
+            <Icon
+              name={Icons.inventory2}
+              size={28}
+              color={colors.primaryBlue}
+              style={styles.statIcon}
+            />
+            <Text style={styles.statValue}>{stats.totalBottles}</Text>
+            <Text style={styles.statLabel}>{t("totalBottles")}</Text>
+          </View>
+          <View style={[styles.statCard, shadows.card]}>
+            <Icon
+              name={Icons.euro}
+              size={28}
+              color={colors.accentGreen}
+              style={styles.statIcon}
+            />
+            <Text style={styles.statValue}>
+              {typeof stats.totalValue === "number"
+                ? `${stats.totalValue.toFixed(2)} €`
+                : "0.00 €"}
+            </Text>
+            <Text style={styles.statLabel}>{t("stockValue")}</Text>
+          </View>
+          <TouchableOpacity
+            style={[styles.statCard, shadows.card]}
+            onPress={() => setLowStockModalVisible(true)}
+            activeOpacity={0.8}
+          >
+            <Icon
+              name={Icons.warning}
+              size={28}
+              color={
+                stats.lowStock > 0 ? colors.danger : colors.textSecondary
+              }
+              style={styles.statIcon}
+            />
+            <Text
+              style={[
+                styles.statValue,
+                stats.lowStock > 0 && styles.statValueDanger,
+              ]}
+            >
+              {stats.lowStock}
+            </Text>
+            <Text style={styles.statLabel}>{t("lowStock")}</Text>
+          </TouchableOpacity>
+        </View>
+        <SearchBar
+          value={search}
+          onChangeText={setSearch}
+          placeholder={t("searchArea")}
+        />
+        {editMode && (
+          <View style={styles.editModeBanner}>
+            <Icon name={Icons.edit} size={18} color={colors.primaryBlue} />
+            <Text style={styles.editModeBannerText}>
+              {t("tapItemToEdit")}
+            </Text>
+          </View>
+        )}
+        <View style={styles.sectionTitleRow}>
+          <Icon
+            name={Icons.folderOpen}
+            size={20}
+            color={colors.primaryBlue}
+            style={styles.sectionIcon}
+          />
+          <Text style={styles.sectionTitle}>{t("yourAreas")}</Text>
+        </View>
+        <FlatList
+          data={filtered}
+          keyExtractor={(item) => String(item.id)}
+          contentContainerStyle={styles.listContent}
+          showsVerticalScrollIndicator={false}
+          ListEmptyComponent={
+            <View style={styles.emptyWrap}>
+              <Icon
+                name={Icons.inventory2}
+                size={48}
+                color={colors.textSecondary}
+              />
+              <Text style={styles.emptyText}>{t("noAreasFound")}</Text>
+            </View>
+          }
+          renderItem={({ item, index }) => (
+            <TouchableOpacity
+              style={[styles.categoryCard, shadows.card]}
+              onPress={() => onCategoryPress(item)}
+              activeOpacity={0.7}
+            >
+              <View
+                style={[
+                  styles.categoryIcon,
+                  {
+                    backgroundColor: CATEGORY_COLORS[index % CATEGORY_COLORS.length],
+                  },
+                ]}
+              >
+                <Icon name={Icons.clipboard} size={24} color={colors.white} />
+              </View>
+              <Text style={styles.categoryName}>{item.name}</Text>
+              {item.lastSession && (
+                <View style={styles.statusBadge}>
+                  <Text style={styles.statusText}>{item.lastSession}</Text>
+                </View>
+              )}
+            </TouchableOpacity>
+          )}
+        />
+      </View>
+
+      <FloatingAddButton onPress={openAddCategory} />
+
+      <Modal visible={addModalVisible} transparent animationType="fade">
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setAddModalVisible(false)}
+        >
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            style={styles.modalWrap}
           >
             <TouchableOpacity
               activeOpacity={1}
               onPress={(e) => e.stopPropagation()}
             >
-              <View style={styles.lowStockModalBox}>
-                <View style={styles.lowStockModalHeader}>
-                  <Text style={styles.lowStockModalTitle}>{t("lowStock")}</Text>
+              <View style={styles.modalBox}>
+                <Text style={styles.modalTitle}>{t("addCategory")}</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  value={newCategoryName}
+                  onChangeText={setNewCategoryName}
+                  placeholder={t("categoryNamePlaceholder")}
+                  placeholderTextColor={colors.textSecondary}
+                  autoFocus
+                />
+                <View style={styles.modalActions}>
                   <TouchableOpacity
-                    onPress={() => setLowStockModalVisible(false)}
+                    onPress={() => setAddModalVisible(false)}
                     style={styles.modalBtn}
                   >
-                    <Icon
-                      name={Icons.close}
-                      size={24}
-                      color={colors.textSecondary}
-                    />
+                    <Text style={styles.modalBtnCancel}>{t("cancel")}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={saveNewCategory}
+                    style={styles.modalBtn}
+                  >
+                    <Text style={styles.modalBtnSave}>
+                      {t("saveCategory")}
+                    </Text>
                   </TouchableOpacity>
                 </View>
-                <FlatList
-                  data={(stats.products || []).filter(
-                    (p) => (p.fillLevel ?? 100) < 25,
-                  )}
-                  keyExtractor={(item) => String(item.id)}
-                  style={styles.lowStockList}
-                  ListEmptyComponent={
-                    <View style={styles.lowStockEmpty}>
-                      <Icon
-                        name={Icons.check}
-                        size={32}
-                        color={colors.accentGreen}
-                      />
-                      <Text style={styles.lowStockEmptyText}>
-                        {t("noLowStockProducts") || "No low stock products"}
-                      </Text>
-                    </View>
-                  }
-                  renderItem={({ item }) => {
-                    return (
-                      <View style={styles.lowStockRow}>
-                        <Text style={styles.lowStockRowName} numberOfLines={1}>
-                          {item.name}
-                        </Text>
-                        <Text style={styles.lowStockRowMeta}>
-                          {item.volume ? `${item.volume} ml` : ""} ·{" "}
-                          {t("fillLevel") || "Fill"}: {item.fillLevel ?? 100}%
-                        </Text>
-                      </View>
-                    );
-                  }}
-                />
               </View>
             </TouchableOpacity>
-          </TouchableOpacity>
-        </Modal>
+          </KeyboardAvoidingView>
+        </TouchableOpacity>
+      </Modal>
 
-        <Modal visible={editModalVisible} transparent animationType="fade">
+      <Modal visible={lowStockModalVisible} transparent animationType="fade">
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setLowStockModalVisible(false)}
+        >
           <TouchableOpacity
-            style={styles.modalOverlay}
             activeOpacity={1}
-            onPress={() => setEditModalVisible(false)}
+            onPress={(e) => e.stopPropagation()}
           >
-            <KeyboardAvoidingView
-              behavior={Platform.OS === "ios" ? "padding" : undefined}
-              style={styles.modalWrap}
-            >
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={(e) => e.stopPropagation()}
-              >
-                <View style={styles.modalBox}>
-                  <Text style={styles.modalTitle}>{t("editCategory")}</Text>
-                  <TextInput
-                    style={styles.modalInput}
-                    value={categoryName}
-                    onChangeText={setCategoryName}
-                    placeholder={t("categoryNamePlaceholder")}
-                    placeholderTextColor={colors.textSecondary}
-                    autoFocus
+            <View style={styles.lowStockModalBox}>
+              <View style={styles.lowStockModalHeader}>
+                <Text style={styles.lowStockModalTitle}>{t("lowStock")}</Text>
+                <TouchableOpacity
+                  onPress={() => setLowStockModalVisible(false)}
+                  style={styles.modalBtn}
+                >
+                  <Icon
+                    name={Icons.close}
+                    size={24}
+                    color={colors.textSecondary}
                   />
-                  <View style={styles.modalActions}>
-                    <TouchableOpacity
-                      onPress={() => setEditModalVisible(false)}
-                      style={styles.modalBtn}
-                    >
-                      <Text style={styles.modalBtnCancel}>{t("cancel")}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={confirmDeleteCategory}
-                      style={styles.modalBtn}
-                    >
-                      <Text style={styles.modalBtnDelete}>
-                        {t("delete") || "Delete"}
-                      </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                      onPress={saveEditCategory}
-                      style={styles.modalBtn}
-                    >
-                      <Text style={styles.modalBtnSave}>
-                        {t("saveCategory")}
-                      </Text>
-                    </TouchableOpacity>
+                </TouchableOpacity>
+              </View>
+              <FlatList
+                data={(stats.products || []).filter(
+                  (p) => (p.fillLevel ?? 100) < 25,
+                )}
+                keyExtractor={(item) => String(item.id)}
+                style={styles.lowStockList}
+                ListEmptyComponent={
+                  <View style={styles.lowStockEmpty}>
+                    <Icon
+                      name={Icons.check}
+                      size={32}
+                      color={colors.accentGreen}
+                    />
+                    <Text style={styles.lowStockEmptyText}>
+                      {t("noLowStockProducts") || "No low stock products"}
+                    </Text>
                   </View>
-                </View>
-              </TouchableOpacity>
-            </KeyboardAvoidingView>
+                }
+                renderItem={({ item }) => {
+                  return (
+                    <View style={styles.lowStockRow}>
+                      <Text style={styles.lowStockRowName} numberOfLines={1}>
+                        {item.name}
+                      </Text>
+                      <Text style={styles.lowStockRowMeta}>
+                        {item.volume ? `${item.volume} ml` : ""} ·{" "}
+                        {t("fillLevel") || "Fill"}: {item.fillLevel ?? 100}%
+                      </Text>
+                    </View>
+                  );
+                }}
+              />
+            </View>
           </TouchableOpacity>
-        </Modal>
-      </View>
-    </SafeAreaView>
-  );
+        </TouchableOpacity>
+      </Modal>
+
+      <Modal visible={editModalVisible} transparent animationType="fade">
+        <TouchableOpacity
+          style={styles.modalOverlay}
+          activeOpacity={1}
+          onPress={() => setEditModalVisible(false)}
+        >
+          <KeyboardAvoidingView
+            behavior={Platform.OS === "ios" ? "padding" : undefined}
+            style={styles.modalWrap}
+          >
+            <TouchableOpacity
+              activeOpacity={1}
+              onPress={(e) => e.stopPropagation()}
+            >
+              <View style={styles.modalBox}>
+                <Text style={styles.modalTitle}>{t("editCategory")}</Text>
+                <TextInput
+                  style={styles.modalInput}
+                  value={categoryName}
+                  onChangeText={setCategoryName}
+                  placeholder={t("categoryNamePlaceholder")}
+                  placeholderTextColor={colors.textSecondary}
+                  autoFocus
+                />
+                <View style={styles.modalActions}>
+                  <TouchableOpacity
+                    onPress={() => setEditModalVisible(false)}
+                    style={styles.modalBtn}
+                  >
+                    <Text style={styles.modalBtnCancel}>{t("cancel")}</Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={confirmDeleteCategory}
+                    style={styles.modalBtn}
+                  >
+                    <Text style={styles.modalBtnDelete}>
+                      {t("delete") || "Delete"}
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    onPress={saveEditCategory}
+                    style={styles.modalBtn}
+                  >
+                    <Text style={styles.modalBtnSave}>
+                      {t("saveCategory")}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </TouchableOpacity>
+          </KeyboardAvoidingView>
+        </TouchableOpacity>
+      </Modal>
+    </View>
+  </SafeAreaView>
+);
 }
 
 const styles = StyleSheet.create({

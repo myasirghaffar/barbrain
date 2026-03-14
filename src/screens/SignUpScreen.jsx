@@ -44,6 +44,10 @@ export default function SignUpScreen({ navigation }) {
     const p = password || '';
     const cp = confirmPassword || '';
 
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    const phoneRegex = /^[0-9+\-\s()]+$/;
+    const usernameRegex = /^[a-zA-Z0-9_]+$/;
+
     if (!fn) {
       setError(t('firstName') + ' is required');
       return;
@@ -52,16 +56,16 @@ export default function SignUpScreen({ navigation }) {
       setError(t('lastName') + ' is required');
       return;
     }
-    if (!un || un.length < 3) {
-      setError(t('username') + ' must be at least 3 characters');
+    if (!un || un.length < 3 || !usernameRegex.test(un)) {
+      setError('Username must be at least 3 characters and contain only letters, numbers, or underscores');
       return;
     }
-    if (!e) {
-      setError(t('email') + ' is required');
+    if (!e || !emailRegex.test(e)) {
+      setError('Please provide a valid email address');
       return;
     }
-    if (!phone) {
-      setError(t('phoneNumber') + ' is required');
+    if (!phone || !phoneRegex.test(phone)) {
+      setError('Please provide a valid phone number');
       return;
     }
     if (!p || p.length < 6) {

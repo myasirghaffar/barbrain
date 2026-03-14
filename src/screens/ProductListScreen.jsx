@@ -150,6 +150,10 @@ export default function ProductListScreen({ navigation }) {
     const name = (editCategoryName || "").trim();
     if (!name || !currentCategoryId) return;
     try {
+      if (name.length < 2) {
+        Alert.alert(t("editCategory"), "Category name must be at least 2 characters.");
+        return;
+      }
       await updateCategory(currentCategoryId, name);
       setEditCategoryVisible(false);
     } catch (err) {
@@ -226,7 +230,7 @@ export default function ProductListScreen({ navigation }) {
         <SearchBar
           value={search}
           onChangeText={doSearch}
-          placeholder={t("searchAreaPlaceholder")}
+          placeholder={t("searchProduct") || "Search products"}
         />
         {editMode && (
           <View style={styles.editModeBanner}>
@@ -290,7 +294,7 @@ export default function ProductListScreen({ navigation }) {
           >
             <TouchableOpacity activeOpacity={1} onPress={(e) => e.stopPropagation()}>
               <View style={styles.editAreaBox}>
-                <Text style={styles.editAreaTitle}>{t("area")}</Text>
+                <Text style={styles.editAreaTitle}>{t("category") || 'Category'}</Text>
                 <TextInput
                   style={styles.editAreaInput}
                   value={editCategoryName}

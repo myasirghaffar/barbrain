@@ -308,6 +308,13 @@ export async function createInventorySession(categoryId, categoryName, team = ''
   return data?.id ?? data?._id;
 }
 
+export async function addInventorySessionItems(sessionId, items) {
+  // items expected as: [{ productId, fullBottles, fillLevel }, ...]
+  await handleResponse(
+    await api.post(`inventory/sessions/${sessionId}/items`, { items })
+  );
+}
+
 export async function getInventorySessions(limit = 50) {
   const data = await handleResponse(
     await api.get('inventory/sessions', { params: { limit } })

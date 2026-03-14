@@ -93,10 +93,17 @@ export default function EditProductScreen({ route, navigation }) {
   const validate = useCallback(() => {
     const next = {};
     if (!(name || '').trim()) next.name = t('productNameRequired');
-    const vol = parseInt(volume, 10);
-    if (volume !== '' && (isNaN(vol) || vol < 0)) next.volume = 'Invalid volume';
-    const pr = parseFloat((price || '').replace(',', '.'));
-    if (price !== '' && (isNaN(pr) || pr < 0)) next.price = 'Invalid price';
+    
+    if (volume !== '') {
+      const vol = parseInt(volume, 10);
+      if (isNaN(vol) || vol <= 0) next.volume = 'Must be a valid amount (> 0)';
+    }
+
+    if (price !== '') {
+      const pr = parseFloat((price || '').replace(',', '.'));
+      if (isNaN(pr) || pr < 0) next.price = 'Must be a valid price (>= 0)';
+    }
+
     setErrors(next);
     return Object.keys(next).length === 0;
   }, [name, volume, price, t]);
