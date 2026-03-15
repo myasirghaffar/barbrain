@@ -94,8 +94,7 @@ export default function PurchasePriceScreen({ navigation }) {
 
   const renderItem = useCallback(
     ({ item }) => {
-      const imageSource =
-        getBottleImage(item) || (item.image ? { uri: item.image } : null);
+      const imageSource = getBottleImage(item);
       const isGrid = viewMode === "grid";
       if (isGrid) {
         return (

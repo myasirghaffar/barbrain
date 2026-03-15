@@ -1,7 +1,8 @@
 /**
- * SCREEN 2 — Product Catalog Add. Search catalog, select multiple products, add to DB.
+ * SCREEN 2 — Product Catalog Add. Search catalog, select multiple products, add to current area.
+ * Catalog is loaded from API/DB (all products, deduped by name+volume).
  */
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useEffect } from "react";
 import {
   View,
   Text,
@@ -18,37 +19,46 @@ import SearchBar from "../components/SearchBar";
 import ProductItem from "../components/ProductItem";
 import { colors, spacing } from "../theme/colors";
 
-// Catalog entries (product catalogue)
-const MOCK_CATALOG = [
-  { id: "c1", name: "Botran 18 Anejo Rum", volume: 700 },
-  { id: "c2", name: "Ableforths Rumbullion!", volume: 700 },
-  { id: "c3", name: "Angostura Premium Rum Reserva", volume: 1000 },
-  { id: "c3b", name: "Angostura Premium Rum Reserva", volume: 700 },
-  { id: "c4", name: "Ardbeg Drum", volume: 700 },
-  { id: "c5", name: "Ayrum Verdejo blanco", volume: 750 },
-  { id: "c6", name: "Banks 5 Island Blend Rum", volume: 700 },
-  { id: "c7", name: "Aperol Aperitivo Italiano", volume: 700 },
-  { id: "c8", name: "Campari", volume: 700 },
-  { id: "c9", name: "Heineken", volume: 330 },
-  { id: "c10", name: "Red Bull", volume: 355 },
-  { id: "c11", name: "Belsazar Red", volume: 750 },
-  { id: "c12", name: "Sierra Milenario Reposado", volume: 700 },
-];
+function dedupeCatalog(products) {
+  const seen = new Set();
+  return (products || []).filter((p) => {
+    const key = `${(p.name || "").trim()}|${Number(p.volume) || 0}`;
+    if (seen.has(key)) return false;
+    seen.add(key);
+    return true;
+  }).map((p) => ({ id: p.id || `${p.name}-${p.volume}`, name: p.name, volume: p.volume, image: p.image }));
+}
 
 function filterCatalog(list, query) {
   const q = (query || "").trim().toLowerCase();
   if (!q) return list;
-  return list.filter((p) => p.name.toLowerCase().includes(q));
+  return list.filter((p) => (p.name || "").toLowerCase().includes(q));
 }
 
 export default function AddProductScreen({ navigation }) {
-  const { addProducts, currentCategoryName, dbReady } = useInventory();
+  const { addProducts, getAllProductsForPriceScreen, currentCategoryName, dbReady } = useInventory();
   const { t } = useLanguage();
   const [search, setSearch] = useState("");
   const [selected, setSelected] = useState(new Set());
   const [saving, setSaving] = useState(false);
+  const [catalogRaw, setCatalogRaw] = useState([]);
+  const [loadingCatalog, setLoadingCatalog] = useState(true);
 
-  const catalog = filterCatalog(MOCK_CATALOG, search);
+  useEffect(() => {
+    if (!dbReady) return;
+    let cancelled = false;
+    getAllProductsForPriceScreen().then((list) => {
+      if (!cancelled) {
+        setCatalogRaw(dedupeCatalog(list));
+        setLoadingCatalog(false);
+      }
+    }).catch(() => {
+      if (!cancelled) setLoadingCatalog(false);
+    });
+    return () => { cancelled = true; };
+  }, [dbReady, getAllProductsForPriceScreen]);
+
+  const catalog = filterCatalog(catalogRaw, search);
 
   const toggleSelect = useCallback((id) => {
     setSelected((prev) => {
@@ -74,7 +84,7 @@ export default function AddProductScreen({ navigation }) {
       <ProductItem
         name={item.name}
         volume={item.volume}
-        image={null}
+        image={item.image}
         metaText={t("measurable")}
         showCheckbox
         selected={selected.has(item.id)}
@@ -87,7 +97,7 @@ export default function AddProductScreen({ navigation }) {
 
   const keyExtractor = useCallback((item) => item.id, []);
 
-  if (!dbReady) {
+  if (!dbReady || loadingCatalog) {
     return (
       <View style={styles.centered}>
         <ActivityIndicator size="large" color={colors.primaryBlue} />

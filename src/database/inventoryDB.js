@@ -79,72 +79,10 @@ async function createTables() {
   } catch (_) {
     // Column already exists
   }
-  // Ensure default category exists
+  // Ensure default category exists (no dummy products/sessions — use real API or add manually)
   await db.executeSql(
     `INSERT OR IGNORE INTO categories (id, name, createdAt) VALUES (1, 'Cocktailstation', datetime('now'))`
   );
-  await seedDummyData();
-}
-
-/** Seed categories, products, and sessions. */
-async function seedDummyData() {
-  if (!db) return;
-  const raw = (sql, params = []) =>
-    db.executeSql(sql, params).then(([r]) => ({ rows: r.rows.raw() }));
-
-  try {
-    const { rows: catRows } = await raw('SELECT COUNT(*) as c FROM categories');
-    const catCount = catRows[0]?.c ?? 0;
-    if (catCount < 4) {
-      const cats = [['Küche'], ['Lager'], ['Regal links'], ['Regal rechts']];
-      for (const [name] of cats) {
-        await db.executeSql(
-          'INSERT OR IGNORE INTO categories (name, createdAt) VALUES (?, datetime("now"))',
-          [name]
-        );
-      }
-    }
-
-    const { rows: productRows } = await raw('SELECT COUNT(*) as c FROM products');
-    if ((productRows[0]?.c ?? 0) === 0) {
-      const products = [
-        { name: 'Aperol Aperitivo Italiano', volume: 700, price: 12.5, fillLevel: 85, image: 'https://images.unsplash.com/photo-1641475910579-d4d2fb3034d7?w=300&fit=crop' },
-        { name: 'Campari', volume: 700, price: 14.0, fillLevel: 60, image: 'https://images.unsplash.com/photo-1728416772991-b66fe62ab72f?w=300&fit=crop' },
-        { name: 'Heineken', volume: 330, price: 0.85, fillLevel: 100, image: 'https://images.unsplash.com/photo-1627483830384-2f8ed6f2c394?w=300&fit=crop' },
-        { name: 'Red Bull', volume: 355, price: 1.2, fillLevel: 90, image: 'https://images.unsplash.com/photo-1557804506-669a67965ba0?w=300&fit=crop' },
-        { name: 'Belsazar Red', volume: 750, price: 18.0, fillLevel: 45, image: 'https://images.unsplash.com/photo-1754926106329-71aac779f440?w=300&fit=crop' },
-        { name: 'Sierra Milenario Reposado', volume: 700, price: 22.0, fillLevel: 70, image: 'https://images.unsplash.com/photo-1754926106329-71aac779f440?w=300&fit=crop' },
-        { name: 'Bacardi 8 y', volume: 700, price: 16.0, fillLevel: 20, image: 'https://images.unsplash.com/photo-1754926106329-71aac779f440?w=300&fit=crop' },
-        { name: 'Botran 18 Anejo Rum', volume: 700, price: 28.0, fillLevel: 100, image: 'https://images.unsplash.com/photo-1754926106329-71aac779f440?w=300&fit=crop' },
-        { name: 'Angostura Premium Rum', volume: 1000, price: 24.0, fillLevel: 55, image: 'https://images.unsplash.com/photo-1754926106329-71aac779f440?w=300&fit=crop' },
-      ];
-      for (const p of products) {
-        await db.executeSql(
-          `INSERT INTO products (categoryId, name, volume, image, subCategory, price, fillLevel, createdAt)
-           VALUES (1, ?, ?, ?, 'Spirits', ?, ?, datetime('now'))`,
-          [p.name, p.volume, p.image || '', p.price ?? 0, p.fillLevel ?? 100]
-        );
-      }
-    }
-
-    const { rows: sessionRows } = await raw('SELECT COUNT(*) as c FROM inventory_sessions');
-    if ((sessionRows[0]?.c ?? 0) === 0) {
-      await db.executeSql(
-        `INSERT INTO inventory_sessions (categoryId, categoryName, date, team, createdAt)
-         VALUES (1, 'Cocktailstation', date('now'), 'Team A', datetime('now'))`
-      );
-      await db.executeSql(
-        `INSERT INTO inventory_sessions (categoryId, categoryName, date, team, createdAt)
-         VALUES (2, 'Küche', date('now', '-1 day'), 'Team B', datetime('now'))`
-      );
-      await db.executeSql(
-        `INSERT INTO inventory_sessions (categoryId, categoryName, date, team, createdAt)
-         VALUES (3, 'Lager', date('now', '-2 days'), 'To', datetime('now'))`
-      );
-    }
-  } catch (err) {
-    console.warn('Seed dummy data failed:', err);
-  }
 }
 
 export async function runSql(sql, params = []) {
