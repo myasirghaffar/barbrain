@@ -30,5 +30,12 @@ target 'Barlytics' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+    # Fix readlink in CocoaPods framework scripts (Xcode 14.3+ / macOS compatibility)
+    Dir.glob(File.join(installer.sandbox.root, 'Target Support Files', '**', '*-frameworks.sh')).each do |script_path|
+      script = File.read(script_path)
+      if script.include?('readlink "${') && !script.include?('readlink -f "${')
+        File.write(script_path, script.gsub('readlink "${', 'readlink -f "${'))
+      end
+    end
   end
 end
